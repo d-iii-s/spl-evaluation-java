@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  - Copyright 2015 Charles University in Prague
+  - Copyright 2015 Vojtech Horky
+  - 
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  -     http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -->
+<project basedir="." name="SPL evaluation" default="main">
+	<property file="local-settings.ini" />
+	
+	<property name="java.src.dir" value="src/java" />
+	<property name="java.test.src.dir" value="src/test-java" />
+	<property name="java.demo.src.dir" value="src/demo-java" />
+	
+	<property name="lib.dir" value="lib" />
+	<property name="junit.jar.path" value="${lib.dir}/junit-4.11.jar" />
+	<property name="javacc.home" value="${lib.dir}/javacc-6.0/" />
+	
+	<property name="build.dir" value="out" />
+	<property name="classes.build.dir" value="${build.dir}/classes" />
+	<property name="parser.build.dir" value="${build.dir}/parser-src" />
+	<property name="parser.package.path" value="cz/cuni/mff/d3s/spl/formula" />
+	<property name="test.classes.build.dir" value="${build.dir}/test-classes" />
+	<property name="test.results.dir" value="${build.dir}/test-results" />
+	<property name="tests.to.execute" value="*Test*" />
+	<property name="demo.classes.build.dir" value="${build.dir}/demo-classes" />
+	<property name="jar.build.dir" value="${build.dir}/jars" /> 
+	<property name="javadoc.build.dir" value="${build.dir}/javadoc" />
+		
+	<property environment="env" />
+	
+	<target name="main" depends="compile">
+	</target>
+	
+	<target name="compile" depends="compile-parser">
+		<mkdir dir="${classes.build.dir}" />
+		<javac srcdir="${java.src.dir}" destdir="${classes.build.dir}"
+				debug="true"
+				includeantruntime="false">
+			<src path="${java.src.dir}" />
+			<src path="${parser.build.dir}" />
+			<compilerarg value="-Xlint:all"/>
+		</javac>
+	</target>
+	
+	<target name="compile-parser">
+		<mkdir dir="${parser.build.dir}/${parser.package.path}" />
+		<javacc target="${java.src.dir}/${parser.package.path}/FormulaParser.jj"
+			outputdirectory="${parser.build.dir}/${parser.package.path}/"
+			javacchome="${javacc.home}"
+		/>
+	</target>
+	
+	<target name="compile-tests" depends="compile">
+		<mkdir dir="${test.classes.build.dir}" />
+		<javac srcdir="${java.test.src.dir}"
+				destdir="${test.classes.build.dir}"
+				debug="true"
+				includeantruntime="false">
+			<classpath>
+				<pathelement path="${junit.jar.path}"/>
+				<pathelement path="${classes.build.dir}" />
+			</classpath>
+			<compilerarg value="-Xlint:all"/>
+		</javac>
+	</target>
+	
+	<target name="compile-demos" depends="compile">
+		<mkdir dir="${demo.classes.build.dir}" />
+		<javac srcdir="${java.demo.src.dir}"
+				destdir="${demo.classes.build.dir}"
+				includeantruntime="false">
+			<classpath>
+				<pathelement path="${classes.build.dir}" />
+			</classpath>
+			<compilerarg value="-Xlint:all"/>
+		</javac>
+	</target>
+	
+	<target name="refdoc" depends="compile-parser">
+		<mkdir dir="${javadoc.build.dir}" />
+		<echo message="Running JavaDoc..." />
+		<javadoc destdir="${javadoc.build.dir}" author="true"
+				version="true" use="true"
+				overview="${java.src.dir}/overview.html"
+				windowtitle="${ant.project.name}">
+			<packageset
+				dir="${java.src.dir}"
+				defaultexcludes="yes" />
+			<packageset
+				dir="${parser.build.dir}"
+				defaultexcludes="yes" />
+			<packageset
+				dir="${java.demo.src.dir}"
+				includes="**/demo/imagequality/*,**/demo/imagequality/"
+				defaultexcludes="yes" />
+			<classpath path="${lib.dir}/javassist.jar" />
+			<classpath path="${lib.dir}/gral-core-0.9-SNAPSHOT.jar" />
+			<doctitle>
+				<![CDATA[<h1>
+				Stochastic Performance Logic (SPL) evaluation engine</h1>
+				]]>
+			</doctitle>
+			<bottom>
+				<![CDATA[
+				<i>Copyright &#169; 2015
+				Charles University in Prague.</i>
+				]]>
+			</bottom>
+		</javadoc>
+	</target>
+	
+	<target name="test" depends="compile-tests">
+		<mkdir dir="${test.results.dir}"/>
+		<junit printsummary="withOutAndErr" haltonfailure="no">
+			<classpath>
+				<pathelement path="${junit.jar.path}"/>
+				<pathelement path="${test.classes.build.dir}"/>
+				<pathelement path="${classes.build.dir}"/>
+			</classpath>
+			
+			<formatter type="plain" />
+			<formatter type="xml" />
+			
+			<batchtest fork="yes" todir="${test.results.dir}">
+				<fileset dir="${test.classes.build.dir}">
+					<include name="**/${tests.to.execute}.class"/>
+				</fileset>
+			</batchtest>
+		</junit>
+		<junitreport todir="${test.results.dir}">
+			<fileset dir="${test.results.dir}">
+				<include name="TEST-*.xml"/>
+			</fileset>
+			<report format="frames" todir="${test.results.dir}/html"/>
+		</junitreport>
+	</target>
+		
+	<target name="clean">
+		<delete dir="${build.dir}" />
+	</target>
+</project>

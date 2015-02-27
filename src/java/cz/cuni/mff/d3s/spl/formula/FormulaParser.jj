@@ -1,0 +1,213 @@
+/*
+ * Copyright 2015 Charles University in Prague
+ * Copyright 2015 Vojtech Horky
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+options {
+	STATIC = false;
+	SUPPORT_CLASS_VISIBILITY_PUBLIC = false;
+}
+
+PARSER_BEGIN(FormulaParser)
+package cz.cuni.mff.d3s.spl.formula;
+
+import java.util.*;
+
+import cz.cuni.mff.d3s.spl.Formula;
+import cz.cuni.mff.d3s.spl.Data;
+import cz.cuni.mff.d3s.spl.MathematicalInterpretation;
+import cz.cuni.mff.d3s.spl.interpretation.KindergartenMath;
+import cz.cuni.mff.d3s.spl.Result;
+
+class FormulaParser {
+	public static Formula parse(String formula) throws FormulaParsingException {
+		try {
+			FormulaParser parser = new FormulaParser(formula);
+			Formula parsedFormula = parser.splFormula();
+			parsedFormula.setInterpretation(KindergartenMath.INSTANCE);
+			return parsedFormula;
+		} catch (TokenMgrError e) {
+			throw new FormulaParsingException(e, formula);
+		} catch (ParseException e) {
+			throw new FormulaParsingException(e, formula);
+		}
+	}
+	
+	public FormulaParser(String formula) {
+		this(new java.io.BufferedReader(new java.io.StringReader(formula)));
+	}
+}
+
+PARSER_END(FormulaParser)
+
+SKIP :
+{
+	< " " >
+	| < "\t" >
+	| < "\n" >
+	| < "\r" >
+}
+
+TOKEN : {
+	<IDENTIFIER: ["a"-"z","A"-"Z"] ( ["a"-"z","A"-"Z","0"-"9"] )* >
+	| <REAL: (["0"] | ( ["1"-"9"] ( ["0"-"9"] )* )) ("." ( ["0"-"9"] )* ) >
+	| <REAL2: "." ["0"-"9"] ( ["0"-"9"] )* >
+	| <INT: ["0"] | ( ["1"-"9"] ( ["0"-"9"] )* ) >
+	| <CMP_GT: ">">
+	| <CMP_LT: "<">
+	| <LOGIC_AND: "&&">
+	| <LOGIC_OR: "||">
+	| <LOGIC_IMPLY: "=>">
+	| <LEFT_PAREN: "(">
+	| <RIGHT_PAREN: ")">
+}
+
+Formula splFormula():
+{
+	Formula tmp;
+}
+{
+	tmp = logicFormulaImply() {
+		return tmp;
+	}
+}
+
+Formula logicFormulaImply():
+{
+	List<Formula> parts = new LinkedList<Formula>();
+	Formula tmp;
+}
+{
+	tmp = logicFormulaOr() { parts.add(tmp); } ( <LOGIC_IMPLY> tmp = logicFormulaOr() { parts.add(tmp); } )* {
+		Formula result = parts.get(0); 
+		for (int i = 1; i < parts.size(); i++) {
+			result = new LogicImply(result, parts.get(i));
+		}
+		return result;
+	}
+}
+
+Formula logicFormulaOr():
+{
+	List<Formula> parts = new LinkedList<Formula>();
+	Formula tmp = null;
+}
+{
+	tmp = logicFormulaAnd() { parts.add(tmp); } ( <LOGIC_OR> tmp = logicFormulaAnd() { parts.add(tmp); } )* {
+		Formula result = parts.get(0); 
+		for (int i = 1; i < parts.size(); i++) {
+			result = new LogicOr(result, parts.get(i));
+		}
+		return result;
+	}
+}
+
+Formula logicFormulaAnd():
+{
+	List<Formula> parts = new LinkedList<Formula>();
+	Formula tmp;
+}
+{
+	tmp = logicFormulaAtomic() { parts.add(tmp); } ( <LOGIC_AND> tmp = logicFormulaAtomic() { parts.add(tmp); } )* {
+		Formula result = parts.get(0); 
+		for (int i = 1; i < parts.size(); i++) {
+			result = new LogicAnd(result, parts.get(i));
+		}
+		return result;
+	}
+}
+
+Formula logicFormulaAtomic():
+{
+	Formula atomic;
+}
+{
+	atomic = plainComparison() {
+		return atomic;
+	}
+	| <LEFT_PAREN> atomic = splFormula() <RIGHT_PAREN> {
+		return atomic;
+	}
+}
+
+Formula plainComparison():
+{
+	String leftName;
+	double leftConst;
+	String rightName;
+	double rightConst;
+	Comparison.Operator op;
+}
+{
+	LOOKAHEAD(3)
+	leftName = sourceName() op = comparisonOperator() rightName = sourceName() {
+		return new Comparison(leftName, rightName, op);
+	}
+	| leftConst = constantSource() op = inverseComparisonOperator() rightName = sourceName() {
+		return new ComparisonWithConst(rightName, leftConst, op);
+	}
+	| leftName = sourceName() op = comparisonOperator() rightConst = constantSource() {
+		return new ComparisonWithConst(leftName, rightConst, op);
+	}
+}
+
+String sourceName():
+{
+	Token name;
+}
+{
+	name = <IDENTIFIER> {
+		return name.image;
+	}
+}
+
+double constantSource():
+{
+	Token t;
+}
+{
+	t = <INT> {
+		return Integer.valueOf(t.image);
+	}
+	| t = <REAL> {
+		return Double.valueOf(t.image);
+	}
+	| t = <REAL2> {
+		return Double.valueOf("0" + t.image);
+	}
+}
+
+Comparison.Operator comparisonOperator():
+{}
+{
+	<CMP_GT> {
+		return Comparison.Operator.GT;
+	}
+	| <CMP_LT> {
+		return Comparison.Operator.LT;
+	}
+}
+
+Comparison.Operator inverseComparisonOperator():
+{}
+{
+	<CMP_LT> {
+		return Comparison.Operator.GT;
+	}
+	| <CMP_GT> {
+		return Comparison.Operator.LT;
+	}
+}
+
+

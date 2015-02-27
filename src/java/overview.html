@@ -1,0 +1,72 @@
+<html>
+<head>
+<title>SPL evaluation engine for Java</title>
+</head>
+<body>
+<p>Evaluation engine of Performance Stochastic Logic for Java.</p>
+
+
+<h2>Introduction</h2>
+<p>
+Stochastice Performance Logic is a formalism for capturing performance
+assumptions.
+It is, for example, possible to capture assumption that newer version of
+a function <code>bar</code> is faster than the previous version or that library
+<code>foobar</code> is faster than library <code>barfoo</code> when
+rendering antialiased text.
+</p>
+<p>
+The purpose of this framework is to allow evaluation of SPL formulas
+inside Java applications.
+</p>
+<p>More information about SPL is available at
+<a href="http://d3s.mff.cuni.cz/software/spl">http://d3s.mff.cuni.cz/software/spl</a>.
+</p>
+
+<h2>Usage</h2>
+<p>
+The framework expects that the user has the actual data ready and only
+wants to evaluate them inside SPL.
+Thus, the framework offers two concepts only: data sources
+({@link cz.cuni.mff.d3s.spl.Data} interface) and formulas
+({@link cz.cuni.mff.d3s.spl.Formula} interface).
+
+
+<h3>Data sources</h3>
+<p>
+Data sources that represent input data fed into SPL formulas.
+Typically, these input data are derived from method execution times but they
+can also represent system load or last level cache misses.
+</p>
+<p>
+Formulas requires the {@link cz.cuni.mff.d3s.spl.Data} interface, but typically
+one would use {@link cz.cuni.mff.d3s.spl.DataStore} that allows to add new
+samples.
+To this end, there is {@link cz.cuni.mff.d3s.spl.data.SlidingWindowDataStore}
+that implements a ring-buffer storing the last added samples.
+</p>
+
+<h3>Formulas</h3>
+<p>
+Formulas are the heart of the framework.
+They use the Stochastic Performance Logic to express assumptions/questions
+about application performance.
+They are represented by the {@link cz.cuni.mff.d3s.spl.Formula} interface.
+</p>
+<p>
+Although one can use implementation from {@link cz.cuni.mff.d3s.spl.formula}
+to build the formula, it is easier to express the formula as a string and
+parse it with {@link cz.cuni.mff.d3s.spl.formula.SplFormula#create}.
+</p>
+<p>
+Individual variables in the formula must always be binded to concrete data
+sources prior formula evaluation.
+This allows you to reuse to formula with different data sources
+(e.g. modeled performance vs. actually measured performance).
+Different interpretation of the formula can be used as well
+(see {@link cz.cuni.mff.d3s.spl.MathematicalInterpretation}).
+</p>
+
+
+</body>
+</html>
