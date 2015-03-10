@@ -49,5 +49,10 @@ public class PrimitiveIterables {
 		public Long next() {
 			return array[index++];
 		}
+		
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException("Impossible to remove item from an array");
+		}
 	}
 }
