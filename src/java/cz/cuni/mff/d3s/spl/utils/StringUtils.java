@@ -45,8 +45,9 @@ public class StringUtils {
 	
 	/** Perform reverse of split on a list.
 	 * 
-	 * @param list Members to be joined.
-	 * @return String representation of all members, connected by comma.
+	 * @param array Members to be joined.
+	 * @param sep Separator between individual members of the array.
+	 * @return String representation of all members, delimited by the separator.
 	 */
 	public static String join(Object[] array, String sep) {
 		if (array.length == 0) {
