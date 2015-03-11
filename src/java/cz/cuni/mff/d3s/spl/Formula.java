@@ -38,7 +38,7 @@ public interface Formula {
 	 * 
 	 * @param interpretation The mathematical interpretation to use.
 	 */
-	void setInterpretation(MathematicalInterpretation interpretation);
+	void setInterpretation(Interpretation interpretation);
 	
 	/** Bind given variable alias to a concrete data source.
 	 * 
@@ -48,11 +48,12 @@ public interface Formula {
 	 * @param variable Variable name as used in the formula.
 	 * @param data Actual data source to use (must not be <code>null</code>).
 	 */
-	void bind(String variable, Data data);
+	void bind(String variable, DataSource data);
 	
 	/** Evaluate the formula.
 	 * 
+	 * @param significanceLevel Requested significance level of the result.
 	 * @return Whether the formula evaluates to true.
 	 */
-	Result evaluate();
+	Result evaluate(double significanceLevel);
 }

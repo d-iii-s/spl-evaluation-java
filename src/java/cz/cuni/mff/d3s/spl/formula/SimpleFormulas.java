@@ -18,10 +18,12 @@ package cz.cuni.mff.d3s.spl.formula;
 
 import java.util.NoSuchElementException;
 
-import cz.cuni.mff.d3s.spl.Data;
+import cz.cuni.mff.d3s.spl.ComparisonResult;
+import cz.cuni.mff.d3s.spl.DataSource;
 import cz.cuni.mff.d3s.spl.Formula;
-import cz.cuni.mff.d3s.spl.MathematicalInterpretation;
+import cz.cuni.mff.d3s.spl.Interpretation;
 import cz.cuni.mff.d3s.spl.Result;
+import cz.cuni.mff.d3s.spl.formula.Comparison.Operator;
 import cz.cuni.mff.d3s.spl.interpretation.KindergartenMath;
 
 /** Helper class for creating very simple formulas without need to write
@@ -38,11 +40,11 @@ public class SimpleFormulas {
 	}
 	
 	private static class LeftSmallerThanRight implements Formula {
-		private MathematicalInterpretation apparatus;
+		private Interpretation apparatus;
 		private String leftName;
-		private Data leftData;
+		private DataSource leftData;
 		private String rightName;
-		private Data rightData;
+		private DataSource rightData;
 		
 		public LeftSmallerThanRight(String left, String right) {
 			apparatus = KindergartenMath.INSTANCE;
@@ -51,12 +53,12 @@ public class SimpleFormulas {
 		}
 
 		@Override
-		public void setInterpretation(MathematicalInterpretation apparatus) {
+		public void setInterpretation(Interpretation apparatus) {
 			this.apparatus = apparatus;
 		}
 
 		@Override
-		public void bind(String variable, Data data)
+		public void bind(String variable, DataSource data)
 				throws NoSuchElementException {
 			if (leftName.equals(variable)) {
 				leftData = data;
@@ -68,16 +70,16 @@ public class SimpleFormulas {
 		}
 
 		@Override
-		public Result evaluate() {
-			return apparatus.isGreaterThan(rightData.getStatisticSnapshot(),
-				leftData.getStatisticSnapshot());
+		public Result evaluate(double significanceLevel) {
+			ComparisonResult result = apparatus.compare(leftData.makeSnapshot(), rightData.makeSnapshot());
+			return Comparison.relationToResult(Operator.LT, result.get(significanceLevel));
 		}
 	}
 	
 	private static class SmallerThanConstant implements Formula {
-		private MathematicalInterpretation interpretation;
+		private Interpretation interpretation;
 		private String sourceName;
-		private Data data;
+		private DataSource data;
 		private double constant;
 		
 		public SmallerThanConstant(String name, double c) {
@@ -87,12 +89,12 @@ public class SimpleFormulas {
 		}
 
 		@Override
-		public void setInterpretation(MathematicalInterpretation interpretation) {
+		public void setInterpretation(Interpretation interpretation) {
 			this.interpretation = interpretation;
 		}
 
 		@Override
-		public void bind(String variable, Data source)
+		public void bind(String variable, DataSource source)
 				throws NoSuchElementException {
 			if (sourceName.equals(variable)) {
 				data = source;
@@ -102,8 +104,9 @@ public class SimpleFormulas {
 		}
 
 		@Override
-		public Result evaluate() {
-			return interpretation.isSmallerThan(data.getStatisticSnapshot(), constant);
+		public Result evaluate(double significanceLevel) {
+			ComparisonResult result = interpretation.compare(data.makeSnapshot(), constant);
+			return Comparison.relationToResult(Operator.LT, result.get(significanceLevel));
 		}
 	}
 }

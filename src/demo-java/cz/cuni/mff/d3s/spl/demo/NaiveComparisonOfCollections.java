@@ -7,10 +7,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
 
-import cz.cuni.mff.d3s.spl.DataStore;
 import cz.cuni.mff.d3s.spl.Formula;
 import cz.cuni.mff.d3s.spl.Result;
-import cz.cuni.mff.d3s.spl.data.SlidingWindowDataStore;
+import cz.cuni.mff.d3s.spl.data.RingDataSource;
 import cz.cuni.mff.d3s.spl.formula.SplFormula;
 
 /** Simple example for using SPL evaluation to determine which
@@ -24,7 +23,7 @@ public class NaiveComparisonOfCollections {
 	
 	public static class Benchmark {
 		public Collection<Integer> collection;
-		public DataStore data;
+		public RingDataSource data;
 		public volatile boolean blackHole;
 		
 		public Benchmark(Collection<Integer> impl, int collectionSize) {
@@ -32,7 +31,8 @@ public class NaiveComparisonOfCollections {
 			for (int i = 0; i < collectionSize; i++) {
 				collection.add(i);
 			}
-			data = new SlidingWindowDataStore(SAMPLES_COLLECTED);
+			data = RingDataSource.create(1, SAMPLES_COLLECTED);
+			data.startRun();
 		}
 		
 		public void benchmark() {
@@ -40,7 +40,7 @@ public class NaiveComparisonOfCollections {
 			long start = System.nanoTime();
 			blackHole = collection.contains(obj);
 			long end = System.nanoTime();
-			data.addValue(start, end - start);
+			data.addSamples(end - start);
 		}
 		
 		public String getName() {
@@ -72,7 +72,7 @@ public class NaiveComparisonOfCollections {
 				formula.bind("left", left.data);
 				formula.bind("right", right.data);
 				
-				Result result = formula.evaluate();
+				Result result = formula.evaluate(0.95);
 				System.out.printf("%s < %s: %s\n", left.getName(),
 						right.getName(), result);
 						

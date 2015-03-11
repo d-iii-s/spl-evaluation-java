@@ -18,37 +18,26 @@ package cz.cuni.mff.d3s.spl.tests;
 
 import org.junit.Ignore;
 
-import cz.cuni.mff.d3s.spl.MathematicalInterpretation;
-import cz.cuni.mff.d3s.spl.Result;
-import cz.cuni.mff.d3s.spl.StatisticSnapshot;
+import cz.cuni.mff.d3s.spl.ComparisonResult;
+import cz.cuni.mff.d3s.spl.DataSnapshot;
+import cz.cuni.mff.d3s.spl.Interpretation;
+import cz.cuni.mff.d3s.spl.interpretation.KindergartenMath;
 
 @Ignore
-public class InterpretationForTests implements MathematicalInterpretation {
+public class InterpretationForTests implements Interpretation {
+	public static final double DEFAULT_SIGNIFICANCE_LEVEL = 0.9;
+	
 	public static final int MINIMUM_SAMPLES_REQUIRED = 10;
 
 	@Override
-	public Result isGreaterThan(StatisticSnapshot left, StatisticSnapshot right) {
-		if ((left.getSampleCount() < MINIMUM_SAMPLES_REQUIRED)
-				|| (right.getSampleCount() < MINIMUM_SAMPLES_REQUIRED)) {
-			return Result.CANNOT_COMPUTE;
-		}
-		return isGreaterThan(left.getArithmeticMean(), right.getArithmeticMean());
+	public ComparisonResult compare(DataSnapshot left, DataSnapshot right) {
+		return KindergartenMath.INSTANCE.compare(left, right);
 	}
 
 	@Override
-	public Result isSmallerThan(StatisticSnapshot variable, double constant) {
-		if (variable.getSampleCount() < MINIMUM_SAMPLES_REQUIRED) {
-			return Result.CANNOT_COMPUTE;
-		}
-		return isGreaterThan(constant, variable.getArithmeticMean());
+	public ComparisonResult compare(DataSnapshot data, double value) {
+		return KindergartenMath.INSTANCE.compare(data, value);
 	}
-	
-	private Result isGreaterThan(double left, double right) {
-		if (left - right > 0.0) {
-			return Result.TRUE;
-		} else {
-			return Result.FALSE;
-		}
-	}
+
 
 }

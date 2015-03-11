@@ -1,4 +1,6 @@
+// piotaas-proposal
 /*
+
  * Copyright 2015 Charles University in Prague
  * Copyright 2015 Vojtech Horky
  * 
@@ -16,48 +18,55 @@
  */
 package cz.cuni.mff.d3s.spl.tests;
 
+import java.util.Arrays;
+
 import org.junit.Ignore;
 
-import cz.cuni.mff.d3s.spl.Data;
-import cz.cuni.mff.d3s.spl.StatisticSnapshot;
+import cz.cuni.mff.d3s.spl.BenchmarkRun;
+import cz.cuni.mff.d3s.spl.DataSnapshot;
+import cz.cuni.mff.d3s.spl.DataSource;
+import cz.cuni.mff.d3s.spl.data.BenchmarkRunBuilder;
 
 @Ignore
-public class DataForTest implements Data {
+public class DataForTest implements DataSource {
 
 	@Ignore
-	private class SnapshotForTests implements StatisticSnapshot {
-		private double mean;
-		private long sampleCount;
-		public SnapshotForTests(double mean, long sampleCount) {
-			this.mean = mean;
-			this.sampleCount = sampleCount;
+	private class SnapshotForTests implements DataSnapshot {
+		private BenchmarkRun run;
+		
+		public SnapshotForTests(long mean, int sampleCount) {
+			BenchmarkRunBuilder builder = new BenchmarkRunBuilder();
+			for (int i = 0; i < sampleCount; i++) {
+				builder.addSamples(mean);
+			}
+			run = builder.create();
 		}
 
 		@Override
-		public double getArithmeticMean() {
-			return mean;
+		public int getRunCount() {
+			return 1;
 		}
 
 		@Override
-		public long getSampleCount() {
-			return sampleCount;
+		public BenchmarkRun getRun(int index) {
+			return run;
 		}
 
 		@Override
-		public long[] getSamples() {
-			return null;
+		public Iterable<BenchmarkRun> getRuns() {
+			return Arrays.asList(run);
 		}
 	}
 	
-	private SnapshotForTests stats;
+	private SnapshotForTests snapshot;
 	
-	public DataForTest(double mean, long sampleCount) {
-		stats = new SnapshotForTests(mean, sampleCount);
+	public DataForTest(long mean, int sampleCount) {
+		snapshot = new SnapshotForTests(mean, sampleCount);
 	}
 	
 	@Override
-	public StatisticSnapshot getStatisticSnapshot() {
-		return stats;
+	public DataSnapshot makeSnapshot() {
+		return snapshot;
 	}
 
 }

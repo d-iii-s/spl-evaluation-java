@@ -18,9 +18,10 @@ package cz.cuni.mff.d3s.spl.formula;
 
 import java.util.NoSuchElementException;
 
-import cz.cuni.mff.d3s.spl.Data;
+import cz.cuni.mff.d3s.spl.ComparisonResult;
+import cz.cuni.mff.d3s.spl.DataSource;
 import cz.cuni.mff.d3s.spl.Formula;
-import cz.cuni.mff.d3s.spl.MathematicalInterpretation;
+import cz.cuni.mff.d3s.spl.Interpretation;
 import cz.cuni.mff.d3s.spl.Result;
 
 /** Formula node: actual comparison of a data set with a constant.
@@ -29,11 +30,11 @@ import cz.cuni.mff.d3s.spl.Result;
 public class ComparisonWithConst implements Formula {
 	/* Internally, we always assume SOURCE OP CONST */
 	
-	private Data source;
+	private DataSource source;
 	private final String sourceName;
 	private final double constant;
 	private final Comparison.Operator operator;
-	private MathematicalInterpretation interpretation;
+	private Interpretation interpretation;
 	
 	public ComparisonWithConst(String leftVariable, double rightConstant, Comparison.Operator op) {
 		sourceName = leftVariable;
@@ -42,12 +43,12 @@ public class ComparisonWithConst implements Formula {
 	}
 	
 	@Override
-	public void setInterpretation(MathematicalInterpretation interpretation) {
+	public void setInterpretation(Interpretation interpretation) {
 		this.interpretation = interpretation;
 	}
 
 	@Override
-	public void bind(String variable, Data data) {
+	public void bind(String variable, DataSource data) {
 		if (sourceName.equals(variable)) {
 			source = data;
 		} else {
@@ -57,33 +58,17 @@ public class ComparisonWithConst implements Formula {
 	}
 
 	@Override
-	public Result evaluate() {
+	public Result evaluate(double significanceLevel) {
 		if (source == null) {
 			// TODO: throw exception?
 			return Result.CANNOT_COMPUTE;
 		}
 		
-		Result smallerThan = interpretation.isSmallerThan(source.getStatisticSnapshot(), constant);
-		if (smallerThan == Result.CANNOT_COMPUTE) {
-			return Result.CANNOT_COMPUTE;
-		}
+		ComparisonResult result = interpretation.compare(source.makeSnapshot(), constant);
 		
-		switch (operator) {
-		case LT:
-			return smallerThan;
-		case GT:
-			if (smallerThan == Result.TRUE) {
-				return Result.FALSE;
-			} else {
-				assert smallerThan == Result.FALSE;
-				return Result.TRUE;
-			}
-		default:
-			assert false : "Unreachable branch reached :-(.";
-		}
+		ComparisonResult.Relation rel = result.get(significanceLevel);
 		
-		// Make the compiler happy.
-		return Result.CANNOT_COMPUTE;
+		return Comparison.relationToResult(operator, rel);
 	}
 
 }

@@ -38,15 +38,15 @@ public class ComparisonTest {
 	
 	@Test
 	public void validValuesForLessThan() {
-		lessThan.bind("A", new DataForTest(4.0, 100));
-		lessThan.bind("B", new DataForTest(5.0, 100));
-		assertTrue(lessThan.evaluate() == Result.TRUE);
+		lessThan.bind("A", new DataForTest(4, 100));
+		lessThan.bind("B", new DataForTest(5, 100));
+		assertEquals(Result.TRUE, lessThan.evaluate(InterpretationForTests.DEFAULT_SIGNIFICANCE_LEVEL));
 	}
 	
 	@Test
 	public void invalidValuesForLessThan() {
-		lessThan.bind("A", new DataForTest(5.0, 100));
-		lessThan.bind("B", new DataForTest(4.0, 100));
-		assertTrue(lessThan.evaluate() == Result.FALSE);
+		lessThan.bind("A", new DataForTest(5, 100));
+		lessThan.bind("B", new DataForTest(4, 100));
+		assertEquals(Result.FALSE, lessThan.evaluate(InterpretationForTests.DEFAULT_SIGNIFICANCE_LEVEL));
 	}
 }

@@ -28,9 +28,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import cz.cuni.mff.d3s.spl.Data;
+import cz.cuni.mff.d3s.spl.DataSource;
 import cz.cuni.mff.d3s.spl.Formula;
-import cz.cuni.mff.d3s.spl.MathematicalInterpretation;
+import cz.cuni.mff.d3s.spl.Interpretation;
 import cz.cuni.mff.d3s.spl.Result;
 import cz.cuni.mff.d3s.spl.formula.SplFormula;
 import cz.cuni.mff.d3s.spl.formula.SplFormula.SplParseException;
@@ -74,11 +74,11 @@ public class FormulaParserTest {
 	private final String formulaAsString;
 	private final Result expectedResult;
 	
-	protected MathematicalInterpretation interpretation;
-	protected Data low;
-	protected Data medium;
-	protected Data high;
-	protected Data empty;
+	protected Interpretation interpretation;
+	protected DataSource low;
+	protected DataSource medium;
+	protected DataSource high;
+	protected DataSource empty;
 	
 	public FormulaParserTest(final Result result, final String formula) {
 		formulaAsString = formula;
@@ -111,7 +111,7 @@ public class FormulaParserTest {
 		bindIfPresent(formula, formulaAsString);
 		
 		/* And evaluate. */
-		assertEquals(expectedResult, formula.evaluate());
+		assertEquals(expectedResult, formula.evaluate(InterpretationForTests.DEFAULT_SIGNIFICANCE_LEVEL));
 	}
 	
 	private void bindIfPresent(Formula parsed, String formula) {
@@ -121,7 +121,7 @@ public class FormulaParserTest {
 		bindIfPresent(parsed, formula, empty, "empty");
 	}
 	
-	private void bindIfPresent(Formula parsed, String formula, Data source, String variable) {
+	private void bindIfPresent(Formula parsed, String formula, DataSource source, String variable) {
 		if (formula.contains(variable)) {
 			parsed.bind(variable, source);
 		}

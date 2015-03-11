@@ -23,13 +23,13 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import cz.cuni.mff.d3s.spl.Formula;
-import cz.cuni.mff.d3s.spl.MathematicalInterpretation;
+import cz.cuni.mff.d3s.spl.Interpretation;
 import cz.cuni.mff.d3s.spl.Result;
 import cz.cuni.mff.d3s.spl.tests.InterpretationForTests;
 
 @Ignore
 public class LogicOpTestBase {
-	protected MathematicalInterpretation interpretation;
+	protected Interpretation interpretation;
 	protected final Formula leftSubformula;
 	protected final Formula rightSubformula;
 	protected final Result expectedResult;
@@ -48,6 +48,6 @@ public class LogicOpTestBase {
 	
 	@Test
 	public void evaluationTest() {
-		assertEquals(expectedResult, constructedFormula.evaluate());
+		assertEquals(expectedResult, constructedFormula.evaluate(InterpretationForTests.DEFAULT_SIGNIFICANCE_LEVEL));
 	}
 }

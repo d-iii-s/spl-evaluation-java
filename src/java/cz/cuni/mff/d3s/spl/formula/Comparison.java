@@ -18,9 +18,11 @@ package cz.cuni.mff.d3s.spl.formula;
 
 import java.util.NoSuchElementException;
 
-import cz.cuni.mff.d3s.spl.Data;
+import cz.cuni.mff.d3s.spl.ComparisonResult;
+import cz.cuni.mff.d3s.spl.ComparisonResult.Relation;
+import cz.cuni.mff.d3s.spl.DataSource;
 import cz.cuni.mff.d3s.spl.Formula;
-import cz.cuni.mff.d3s.spl.MathematicalInterpretation;
+import cz.cuni.mff.d3s.spl.Interpretation;
 import cz.cuni.mff.d3s.spl.Result;
 
 /** Formula node: actual comparison of two data sets.
@@ -33,12 +35,12 @@ public class Comparison implements Formula {
 	}
 	
 	private class NamedDataSource {
-		public Data data;
+		public DataSource data;
 		public String name;
 		public NamedDataSource(String name) {
 			this.name = name;
 		}
-		public boolean bind(String sourceName, Data source) {
+		public boolean bind(String sourceName, DataSource source) {
 			if (this.name.equals(sourceName)) {
 				data = source;
 				return true;
@@ -54,7 +56,7 @@ public class Comparison implements Formula {
 	private NamedDataSource left;
 	private NamedDataSource right;
 	private Operator operator;
-	private MathematicalInterpretation interpretation;
+	private Interpretation interpretation;
 	
 	public Comparison(String left, String right, Operator op) {
 		this.left = new NamedDataSource(left);
@@ -63,12 +65,12 @@ public class Comparison implements Formula {
 	}
 	
 	@Override
-	public void setInterpretation(MathematicalInterpretation interpretation) {
+	public void setInterpretation(Interpretation interpretation) {
 		this.interpretation = interpretation;
 	}
 
 	@Override
-	public void bind(String variable, Data data) {
+	public void bind(String variable, DataSource data) {
 		boolean leftOkay = left.bind(variable, data);
 		boolean rightOkay = right.bind(variable, data);
 		if (!leftOkay && !rightOkay) {
@@ -78,22 +80,39 @@ public class Comparison implements Formula {
 	}
 
 	@Override
-	public Result evaluate() {
+	public Result evaluate(double significanceLevel) {
 		if (!left.valid() || !right.valid()) {
 			// TODO: throw exception?
 			return Result.CANNOT_COMPUTE;
 		}
 		
-		switch (operator) {
-		case LT:
-			return interpretation.isGreaterThan(right.data.getStatisticSnapshot(), left.data.getStatisticSnapshot());
-		case GT:
-			return interpretation.isGreaterThan(left.data.getStatisticSnapshot(), right.data.getStatisticSnapshot());
-		default:
-			assert false : "Unreachable branch reached :-(.";
-		}
-		// Make the compiler happy.
-		return Result.CANNOT_COMPUTE;
+		ComparisonResult cmp = interpretation.compare(left.data.makeSnapshot(), right.data.makeSnapshot());
+		Relation rel = cmp.get(significanceLevel);
+		
+		return relationToResult(operator, rel);
 	}
 
+	public static Result relationToResult(Operator op, Relation rel) {
+		if (rel == Relation.UNKNOWN) {
+			return Result.CANNOT_COMPUTE;
+		}
+		
+		if (op == Operator.LT) {
+			if (rel == Relation.LESS_THAN) {
+				return Result.TRUE;
+			} else {
+				return Result.FALSE;
+			}
+		} else if (op == Operator.GT) {
+			if (rel == Relation.GREATER_THAN) {
+				return Result.TRUE;
+			} else {
+				return Result.FALSE;
+			}
+		} else {
+			assert false : "Unreachable branch reached :-(.";
+			// Make the compiler happy.
+			return Result.CANNOT_COMPUTE;
+		}
+	}
 }

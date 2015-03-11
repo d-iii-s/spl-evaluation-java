@@ -23,26 +23,27 @@ import org.junit.Test;
 import cz.cuni.mff.d3s.spl.Result;
 import cz.cuni.mff.d3s.spl.formula.LogicConst;
 import cz.cuni.mff.d3s.spl.tests.DataForTest;
+import cz.cuni.mff.d3s.spl.tests.InterpretationForTests;
 
 public class LogicConstTest {
 
 	@Test(expected=java.util.NoSuchElementException.class)
 	public void constantContainsNoVariable() {
-		LogicConst.TRUE.bind("abc", new DataForTest(5., 50));
+		LogicConst.TRUE.bind("abc", new DataForTest(5, 50));
 	}
 	
 	@Test
 	public void evaluateTrue() {
-		assertEquals(Result.TRUE, LogicConst.TRUE.evaluate());
+		assertEquals(Result.TRUE, LogicConst.TRUE.evaluate(InterpretationForTests.DEFAULT_SIGNIFICANCE_LEVEL));
 	}
 	
 	@Test
 	public void evaluateFalse() {
-		assertEquals(Result.FALSE, LogicConst.FALSE.evaluate());
+		assertEquals(Result.FALSE, LogicConst.FALSE.evaluate(InterpretationForTests.DEFAULT_SIGNIFICANCE_LEVEL));
 	}
 	
 	@Test
 	public void evaluateCannotCompute() {
-		assertEquals(Result.CANNOT_COMPUTE, LogicConst.UNKNOWN.evaluate());
+		assertEquals(Result.CANNOT_COMPUTE, LogicConst.UNKNOWN.evaluate(InterpretationForTests.DEFAULT_SIGNIFICANCE_LEVEL));
 	}
 }

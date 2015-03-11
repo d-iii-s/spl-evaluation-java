@@ -19,17 +19,17 @@ package cz.cuni.mff.d3s.spl.formula;
 import org.junit.Before;
 import org.junit.Test;
 
-import cz.cuni.mff.d3s.spl.Data;
+import cz.cuni.mff.d3s.spl.DataSource;
 import cz.cuni.mff.d3s.spl.Formula;
 import cz.cuni.mff.d3s.spl.tests.DataForTest;
 
 public class FormulaErrorHandlingTest {
 	
-	private Data source;
+	private DataSource source;
 	
 	@Before
 	public void setupSource() {
-		source = new DataForTest(5., 50);
+		source = new DataForTest(5, 50);
 	}
 	
 	@Test(expected=FormulaParsingException.class)

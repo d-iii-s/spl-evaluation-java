@@ -16,43 +16,128 @@
  */
 package cz.cuni.mff.d3s.spl.interpretation;
 
-import cz.cuni.mff.d3s.spl.MathematicalInterpretation;
-import cz.cuni.mff.d3s.spl.Result;
-import cz.cuni.mff.d3s.spl.StatisticSnapshot;
+import cz.cuni.mff.d3s.spl.BenchmarkRun;
+import cz.cuni.mff.d3s.spl.ComparisonResult;
+import cz.cuni.mff.d3s.spl.DataSnapshot;
+import cz.cuni.mff.d3s.spl.Interpretation;
 
 /** Primitive interpretation that merely compares arithmetic means.
  *
  */
-public class KindergartenMath implements MathematicalInterpretation {
+public class KindergartenMath implements Interpretation {
 	public static final KindergartenMath INSTANCE = new KindergartenMath();
 	private static final int MIN_SAMPLE_COUNT = 2;
+	private static final double ZERO = 0.000001;
 	
-	
-	@Override
-	public Result isGreaterThan(StatisticSnapshot left, StatisticSnapshot right) {
-		if ((left.getSampleCount() < MIN_SAMPLE_COUNT) || (right.getSampleCount() < MIN_SAMPLE_COUNT)) {
-			return Result.CANNOT_COMPUTE;
+	private static class ImpossibleToCompareResult implements ComparisonResult {
+		
+		public static ImpossibleToCompareResult INSTANCE = new ImpossibleToCompareResult();
+		
+		private ImpossibleToCompareResult() {
 		}
-		double meanDifference = left.getArithmeticMean() - right.getArithmeticMean();
-		if (meanDifference > 0) {
-			return Result.TRUE;
+
+		@Override
+		public Relation get(double significanceLevel) {
+			return Relation.UNKNOWN;
+		}
+
+		@Override
+		public double getStatistic() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public double getCriticalValue(double significanceLevel) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public double[] getConfidenceInterval(double confidenceLevel) {
+			throw new UnsupportedOperationException();
+		}
+	}
+	
+	private static class MeanDifferenceComparisonResult implements ComparisonResult {
+		private double diff;
+		
+		public MeanDifferenceComparisonResult(double left, double right) {
+			diff = left - right;
+		}
+
+		@Override
+		public Relation get(double significanceLevel) {
+			if ((diff > -ZERO) && (diff < ZERO)) {
+				return Relation.EQUAL;
+			} else if (diff < 0.) {
+				return Relation.LESS_THAN;
+			} else {
+				return Relation.GREATER_THAN;
+			}
+		}
+
+		@Override
+		public double getStatistic() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public double getCriticalValue(double significanceLevel) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public double[] getConfidenceInterval(double confidenceLevel) {
+			throw new UnsupportedOperationException();
+		}
+	}
+	
+	private double getMean(DataSnapshot data) {
+		double sum = 0;
+		long count = 0;
+		for (BenchmarkRun run : data.getRuns()) {
+			for (long sample : run.getSamples()) {
+				sum += sample;
+				count++;
+			}
+		}
+		if (count == 0) {
+			return 0.;
 		} else {
-			return Result.FALSE;
+			return sum / count;
 		}
+	}
+	
+	private boolean hasEnoughSamples(DataSnapshot data) {
+		if (data.getRunCount() == 0) {
+			return false;
+		}
+		
+		long totalSampleCount = 0;
+		for (BenchmarkRun run : data.getRuns()) {
+			totalSampleCount += run.getSampleCount();
+		}
+		
+		return totalSampleCount > MIN_SAMPLE_COUNT;
 	}
 
 
 	@Override
-	public Result isSmallerThan(StatisticSnapshot variable, double constant) {
-		if (variable.getSampleCount() < MIN_SAMPLE_COUNT) {
-			return Result.CANNOT_COMPUTE;
+	public ComparisonResult compare(DataSnapshot left, DataSnapshot right) {
+		if (!hasEnoughSamples(left) || !hasEnoughSamples(right)) {
+			return ImpossibleToCompareResult.INSTANCE;
 		}
-		double meanDifference = constant - variable.getArithmeticMean();
-		if (meanDifference > 0) {
-			return Result.TRUE;
-		} else {
-			return Result.FALSE;
+		
+		return new MeanDifferenceComparisonResult(getMean(left), getMean(right));
+	}
+
+
+	@Override
+	public ComparisonResult compare(DataSnapshot data, double value) {
+		if (!hasEnoughSamples(data)) {
+			return ImpossibleToCompareResult.INSTANCE;
 		}
+		
+		return new MeanDifferenceComparisonResult(getMean(data), value);
 	}
 
 }

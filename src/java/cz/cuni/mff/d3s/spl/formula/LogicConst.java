@@ -18,9 +18,9 @@ package cz.cuni.mff.d3s.spl.formula;
 
 import java.util.NoSuchElementException;
 
-import cz.cuni.mff.d3s.spl.Data;
+import cz.cuni.mff.d3s.spl.DataSource;
 import cz.cuni.mff.d3s.spl.Formula;
-import cz.cuni.mff.d3s.spl.MathematicalInterpretation;
+import cz.cuni.mff.d3s.spl.Interpretation;
 import cz.cuni.mff.d3s.spl.Result;
 
 /** Formula node: logic constant.
@@ -38,17 +38,17 @@ public final class LogicConst implements Formula {
 	}
 
 	@Override
-	public void setInterpretation(MathematicalInterpretation interpretation) {
+	public void setInterpretation(Interpretation interpretation) {
 		/* Do nothing. */
 	}
 
 	@Override
-	public void bind(String variable, Data data) {
+	public void bind(String variable, DataSource data) {
 		throw new NoSuchElementException("Constant cannot be binded.");
 	}
 
 	@Override
-	public Result evaluate() {
+	public Result evaluate(double significanceLevel) {
 		return evaluationResult;
 	}
 	

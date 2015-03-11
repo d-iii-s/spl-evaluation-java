@@ -31,8 +31,8 @@ public class LogicAnd extends LogicOp {
 	 * We are using Kleene three-value logic.
 	 */
 	@Override
-	public Result evaluate() {
-		Result leftResult = left.evaluate();
+	public Result evaluate(double significanceLevel) {
+		Result leftResult = left.evaluate(significanceLevel);
 		
 		/*
 		 * If the left one is FALSE, we do not need
@@ -42,7 +42,7 @@ public class LogicAnd extends LogicOp {
 			return Result.FALSE;
 		}
 		
-		Result rightResult = right.evaluate();
+		Result rightResult = right.evaluate(significanceLevel);
 		
 		/*
 		 * If left is TRUE, the result solely depends on
@@ -60,5 +60,4 @@ public class LogicAnd extends LogicOp {
 			}
 		}
 	}
-
 }

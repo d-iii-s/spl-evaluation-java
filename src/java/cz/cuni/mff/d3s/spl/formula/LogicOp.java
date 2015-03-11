@@ -18,9 +18,9 @@ package cz.cuni.mff.d3s.spl.formula;
 
 import java.util.NoSuchElementException;
 
-import cz.cuni.mff.d3s.spl.Data;
+import cz.cuni.mff.d3s.spl.DataSource;
 import cz.cuni.mff.d3s.spl.Formula;
-import cz.cuni.mff.d3s.spl.MathematicalInterpretation;
+import cz.cuni.mff.d3s.spl.Interpretation;
 import cz.cuni.mff.d3s.spl.Result;
 
 /** Formula node: common parent for all logic operations.
@@ -36,17 +36,17 @@ abstract class LogicOp implements Formula {
 	}
 
 	@Override
-	public void setInterpretation(MathematicalInterpretation interpretation) {
+	public void setInterpretation(Interpretation interpretation) {
 		left.setInterpretation(interpretation);
 		right.setInterpretation(interpretation);
 	}
 
 	@Override
-	public void bind(String variable, Data data) {
+	public void bind(String variable, DataSource data) {
 		bindToMultiple(variable, data, left, right);
 	}
 	
-	static final void bindToMultiple(String variable, Data data, Formula... formulas) {
+	static final void bindToMultiple(String variable, DataSource data, Formula... formulas) {
 		boolean somewhereBinded = false;
 		RuntimeException lastException = null;
 		
@@ -66,5 +66,5 @@ abstract class LogicOp implements Formula {
 	}
 	
 	@Override
-	abstract public Result evaluate();
+	abstract public Result evaluate(double significanceLevel);
 }
