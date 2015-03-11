@@ -19,7 +19,7 @@ package cz.cuni.mff.d3s.spl.data;
 import cz.cuni.mff.d3s.spl.BenchmarkRun;
 import cz.cuni.mff.d3s.spl.DataSnapshot;
 import cz.cuni.mff.d3s.spl.DataSource;
-import cz.cuni.mff.d3s.spl.utils.ResizableRingBuffer;
+import cz.cuni.mff.d3s.spl.utils.RingBuffer;
 
 /** Ring-buffer based data source.
  *
@@ -41,12 +41,12 @@ public class RingDataSource implements DataSource {
 		return new RingDataSource(Integer.MAX_VALUE, Integer.MAX_VALUE);
 	}
 	
-	private ResizableRingBuffer<BenchmarkRun> runs;
-	private ResizableRingBuffer<Long> lastRun;
+	private RingBuffer<BenchmarkRun> runs;
+	private RingBuffer<Long> lastRun;
 	private int maxSamples;
 	
 	private RingDataSource(int maxRuns, int maxSamples) {
-		runs = new ResizableRingBuffer<>(maxRuns);
+		runs = new RingBuffer<>(maxRuns);
 		this.maxSamples = maxSamples;
 	}
 	
@@ -54,12 +54,12 @@ public class RingDataSource implements DataSource {
 		if (lastRun != null) {
 			runs.add(new ImmutableBenchmarkRun(lastRun.get()));
 		}
-		lastRun = new ResizableRingBuffer<>(maxSamples);
+		lastRun = new RingBuffer<>(maxSamples);
 	}
 	
 	public synchronized void addSamples(long... values) {
 		if (lastRun == null) {
-			lastRun = new ResizableRingBuffer<>(maxSamples);
+			lastRun = new RingBuffer<>(maxSamples);
 		}
 		for (long v : values) {
 			lastRun.add(v);

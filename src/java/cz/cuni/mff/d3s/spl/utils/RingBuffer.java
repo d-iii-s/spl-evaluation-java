@@ -23,15 +23,20 @@ import java.util.List;
 
 /** Simple ring buffer with option of unlimited size.
  */
-public class ResizableRingBuffer<E> {
+public class RingBuffer<E> {
 	
 	private List<E> data = new LinkedList<>();
 	private int maxSize = Integer.MAX_VALUE;
 	
-	public ResizableRingBuffer() {
+	/** Creates ring-buffer with virtually unlimited size.
+	 * 
+	 * <p>
+	 * The actual size is Integer.MAX_VALUE.
+	 */
+	public RingBuffer() {
 	}
 	
-	public ResizableRingBuffer(int size) {
+	public RingBuffer(int size) {
 		if (size <= 0) {
 			throw new IllegalArgumentException("Ring buffer size must be positive");
 		}

@@ -22,10 +22,10 @@ import java.util.Collection;
 
 import org.junit.Test;
 
-public class ResizableRingBufferTest {
+public class RingBufferTest {
 	private static final Integer[] INTEGER_ARRAY_TYPE = new Integer[0];
 	
-	private static void assertRBContent(ResizableRingBuffer<Integer> buffer,
+	private static void assertRBContent(RingBuffer<Integer> buffer,
 			Integer... expected) {
 		Collection<Integer> data = buffer.get();
 		Integer[] actual  = data.toArray(INTEGER_ARRAY_TYPE);
@@ -34,7 +34,7 @@ public class ResizableRingBufferTest {
 	
 	@Test
 	public void smokeTest() {
-		ResizableRingBuffer<Integer> buffer = new ResizableRingBuffer<>(3);
+		RingBuffer<Integer> buffer = new RingBuffer<>(3);
 		buffer.add(0);
 		assertRBContent(buffer, 0);
 		
