@@ -70,19 +70,7 @@ public class StringUtils {
 	 * @return String representation of all objects, connected by comma.
 	 */
 	public static String join(Object... objects) {
-		if (objects.length == 0) {
-			return "";
-		}
-		StringBuilder result = new StringBuilder();
-		boolean afterFirst = false;
-		for (Object o : objects) {
-			if (afterFirst) {
-				result.append(',');
-			}
-			result.append(o.toString());
-			afterFirst = true;
-		}
-		return result.toString();
+		return join(objects, ",");
 	}
 	
 	/** Format time in reasonable units.
