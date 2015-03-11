@@ -25,19 +25,19 @@ import cz.cuni.mff.d3s.spl.utils.ResizableRingBuffer;
  *
  */
 public class RingDataSource implements DataSource {
-	public RingDataSource create(int maximumRuns, int maximumSamples) {
+	public static RingDataSource create(int maximumRuns, int maximumSamples) {
 		return new RingDataSource(maximumRuns, maximumSamples);
 	}
 	
-	public RingDataSource createWithLimitedNumberOfRuns(int maximumRuns) {
+	public static RingDataSource createWithLimitedNumberOfRuns(int maximumRuns) {
 		return new RingDataSource(maximumRuns, Integer.MAX_VALUE);
 	}
 	
-	public RingDataSource createWithLimitedNumberOfSamples(int maxSamples) {
+	public static RingDataSource createWithLimitedNumberOfSamples(int maxSamples) {
 		return new RingDataSource(Integer.MAX_VALUE, maxSamples);
 	}
 	
-	public RingDataSource createUnlimited() {
+	public static RingDataSource createUnlimited() {
 		return new RingDataSource(Integer.MAX_VALUE, Integer.MAX_VALUE);
 	}
 	
