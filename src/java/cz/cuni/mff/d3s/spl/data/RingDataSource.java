@@ -46,8 +46,9 @@ public class RingDataSource implements DataSource {
 	private int maxSamples;
 	
 	private RingDataSource(int maxRuns, int maxSamples) {
-		runs = new RingBuffer<>(maxRuns);
+		this.runs = new RingBuffer<>(maxRuns);
 		this.maxSamples = maxSamples;
+		this.lastRun = null;
 	}
 	
 	public synchronized void startRun() {
@@ -72,7 +73,10 @@ public class RingDataSource implements DataSource {
 		for (BenchmarkRun run : runs.get()) {
 			builder.addRun(run);
 		}
-		return null;
+		if (lastRun != null) {
+			builder.addRun(new ImmutableBenchmarkRun(lastRun.get()));
+		}
+		return builder.create();
 	}
 }
 
