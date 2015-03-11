@@ -28,7 +28,7 @@ inside Java applications.
 The framework expects that the user has the actual data ready and only
 wants to evaluate them inside SPL.
 Thus, the framework offers two concepts only: data sources
-({@link cz.cuni.mff.d3s.spl.Data} interface) and formulas
+({@link cz.cuni.mff.d3s.spl.DataSource} interface) and formulas
 ({@link cz.cuni.mff.d3s.spl.Formula} interface).
 
 
@@ -39,11 +39,10 @@ Typically, these input data are derived from method execution times but they
 can also represent system load or last level cache misses.
 </p>
 <p>
-Formulas requires the {@link cz.cuni.mff.d3s.spl.Data} interface, but typically
-one would use {@link cz.cuni.mff.d3s.spl.DataStore} that allows to add new
-samples.
-To this end, there is {@link cz.cuni.mff.d3s.spl.data.SlidingWindowDataStore}
-that implements a ring-buffer storing the last added samples.
+Formulas requires the {@link cz.cuni.mff.d3s.spl.DataSource} interface
+that is implemented for example by a
+{@link cz.cuni.mff.d3s.spl.data.RingDataSource} that provides a ring-buffer
+structure for storing individual samples.
 </p>
 
 <h3>Formulas</h3>
@@ -64,7 +63,7 @@ sources prior formula evaluation.
 This allows you to reuse to formula with different data sources
 (e.g. modeled performance vs. actually measured performance).
 Different interpretation of the formula can be used as well
-(see {@link cz.cuni.mff.d3s.spl.MathematicalInterpretation}).
+(see {@link cz.cuni.mff.d3s.spl.Interpretation}).
 </p>
 
 

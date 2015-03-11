@@ -25,8 +25,6 @@ package cz.cuni.mff.d3s.spl.formula;
 import java.util.*;
 
 import cz.cuni.mff.d3s.spl.Formula;
-import cz.cuni.mff.d3s.spl.Data;
-import cz.cuni.mff.d3s.spl.MathematicalInterpretation;
 import cz.cuni.mff.d3s.spl.interpretation.KindergartenMath;
 import cz.cuni.mff.d3s.spl.Result;
 

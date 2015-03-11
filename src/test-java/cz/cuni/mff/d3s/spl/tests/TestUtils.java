@@ -24,22 +24,11 @@ import java.util.List;
 import org.junit.Ignore;
 
 import cz.cuni.mff.d3s.spl.BenchmarkRun;
-import cz.cuni.mff.d3s.spl.Data;
-import cz.cuni.mff.d3s.spl.StatisticSnapshot;
 
 @Ignore
 public class TestUtils {
 	private static final Long[] LONG_ARRAY_TYPE = new Long[0];
 	
-	public static void assertSampleCount(long expected, Data source) {
-		assertNotNull(source);
-		
-		StatisticSnapshot stats = source.getStatisticSnapshot();
-		assertNotNull(stats);
-		
-		assertEquals(expected, stats.getSampleCount());
-	}
-
 	public static void assertBenchmarkRun(BenchmarkRun run, int... samples) {
 		List<Long> actual = new ArrayList<>(samples.length);
 		for (Long s : run.getSamples()) {
