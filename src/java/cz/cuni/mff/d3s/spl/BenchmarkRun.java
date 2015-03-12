@@ -25,13 +25,25 @@ package cz.cuni.mff.d3s.spl;
  * example
  */
 public interface BenchmarkRun {
-	/** Get all samples. */
+	/** Get all samples.
+	 * 
+	 *  @return All samples in the order they were added.
+	 */
 	Iterable<Long> getSamples();
 	
-	/** Get number of samples in this run. */
+	/** Get number of samples in this run.
+	 * 
+	 * @return Number of samples in this run.
+	 */
 	int getSampleCount();
 	
-	/** Get a single sample. */
+	/** Get a single sample.
+	 * 
+	 * @param index Sample (zero based) index we want to retrieve.
+	 * @return Sample value at given index.
+	 * @throws IndexOutOfBoundsException When the index is either negative or
+	 * greater or equal to sample count.
+	 */
 	long getSample(int index);
 }
 

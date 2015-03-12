@@ -18,14 +18,27 @@ package cz.cuni.mff.d3s.spl;
 
 /** A snapshot of the performance data.
  */
+@SuppressWarnings("javadoc")
 public interface DataSnapshot {
-	/** Tells number of runs contained in this snapshot. */
+	/** Tells number of runs contained in this snapshot.
+	 *
+	 * @return Number of runs in the snapshot. 
+	 */
 	int getRunCount();
 	
-	/** Provides access to a specific run inside the snapshot. */
+	/** Provides access to a specific run inside the snapshot.
+	 * 
+	 * @param index Run (zero based) index we want to retrieve.
+	 * @return Run at given index.
+	 * @throws IndexOutOfBoundsException When the index is either negative or
+	 * greater or equal to run count.
+	 */
 	BenchmarkRun getRun(int index);
 	
-	/** Provides iteration over all runs inside the snapshot. */
+	/** Provides iteration over all runs inside the snapshot.
+	 * 
+	 * @return All runs in the order they were added.
+	 */
 	Iterable<BenchmarkRun> getRuns();
 }
 

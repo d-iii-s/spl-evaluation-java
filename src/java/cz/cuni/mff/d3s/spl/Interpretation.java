@@ -29,8 +29,21 @@ package cz.cuni.mff.d3s.spl;
  * comparison.
  */
 public interface Interpretation {
-	/** Compare two data snapshots against each other. */
+	/** Compare two data snapshots against each other.
+	 * 
+	 * @param left Left-hand operand.
+	 * @param right Right-hand operand.
+	 * @return Comparison of the operands according to the current
+	 * interpretation.
+	 */
 	public ComparisonResult compare(DataSnapshot left, DataSnapshot right);
-	/** Compara a data snapshot with a constant. */
+	
+	/** Compara a data snapshot with a constant.
+	 * 
+	 * @param data Left-hand operand in a form of a data snapshot.
+	 * @param value Right-hand operand in a form of a constant.
+	 * @return Comparison of the operands according to the current
+	 * interpretation.
+	 */
 	public ComparisonResult compare(DataSnapshot data, double value);
 }
