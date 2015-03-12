@@ -100,10 +100,6 @@
 			<packageset
 				dir="${parser.build.dir}"
 				defaultexcludes="yes" />
-			<packageset
-				dir="${java.demo.src.dir}"
-				includes="**/demo/imagequality/*,**/demo/imagequality/"
-				defaultexcludes="yes" />
 			<classpath path="${lib.dir}/javassist.jar" />
 			<classpath path="${lib.dir}/gral-core-0.9-SNAPSHOT.jar" />
 			<doctitle>
