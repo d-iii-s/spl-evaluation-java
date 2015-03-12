@@ -25,7 +25,7 @@ package cz.cuni.mff.d3s.spl.formula;
 import java.util.*;
 
 import cz.cuni.mff.d3s.spl.Formula;
-import cz.cuni.mff.d3s.spl.interpretation.KindergartenMath;
+import cz.cuni.mff.d3s.spl.interpretation.KindergartenInterpretation;
 import cz.cuni.mff.d3s.spl.Result;
 
 class FormulaParser {
@@ -33,7 +33,7 @@ class FormulaParser {
 		try {
 			FormulaParser parser = new FormulaParser(formula);
 			Formula parsedFormula = parser.splFormula();
-			parsedFormula.setInterpretation(KindergartenMath.INSTANCE);
+			parsedFormula.setInterpretation(KindergartenInterpretation.INSTANCE);
 			return parsedFormula;
 		} catch (TokenMgrError e) {
 			throw new FormulaParsingException(e, formula);

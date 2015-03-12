@@ -24,7 +24,7 @@ import cz.cuni.mff.d3s.spl.Formula;
 import cz.cuni.mff.d3s.spl.Interpretation;
 import cz.cuni.mff.d3s.spl.Result;
 import cz.cuni.mff.d3s.spl.formula.Comparison.Operator;
-import cz.cuni.mff.d3s.spl.interpretation.KindergartenMath;
+import cz.cuni.mff.d3s.spl.interpretation.KindergartenInterpretation;
 
 /** Helper class for creating very simple formulas without need to write
  * and parse a full-fledged formula.
@@ -47,7 +47,7 @@ public class SimpleFormulas {
 		private DataSource rightData;
 		
 		public LeftSmallerThanRight(String left, String right) {
-			apparatus = KindergartenMath.INSTANCE;
+			apparatus = KindergartenInterpretation.INSTANCE;
 			leftName = left;
 			rightName = right;
 		}
@@ -83,7 +83,7 @@ public class SimpleFormulas {
 		private double constant;
 		
 		public SmallerThanConstant(String name, double c) {
-			interpretation = KindergartenMath.INSTANCE;
+			interpretation = KindergartenInterpretation.INSTANCE;
 			sourceName = name;
 			constant = c;
 		}

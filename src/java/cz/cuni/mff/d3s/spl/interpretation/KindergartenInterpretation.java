@@ -24,8 +24,8 @@ import cz.cuni.mff.d3s.spl.Interpretation;
 /** Primitive interpretation that merely compares arithmetic means.
  *
  */
-public class KindergartenMath implements Interpretation {
-	public static final KindergartenMath INSTANCE = new KindergartenMath();
+public class KindergartenInterpretation implements Interpretation {
+	public static final KindergartenInterpretation INSTANCE = new KindergartenInterpretation();
 	private static final int MIN_SAMPLE_COUNT = 2;
 	private static final double ZERO = 0.000001;
 	

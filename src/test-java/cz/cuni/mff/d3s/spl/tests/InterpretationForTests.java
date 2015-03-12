@@ -21,7 +21,7 @@ import org.junit.Ignore;
 import cz.cuni.mff.d3s.spl.ComparisonResult;
 import cz.cuni.mff.d3s.spl.DataSnapshot;
 import cz.cuni.mff.d3s.spl.Interpretation;
-import cz.cuni.mff.d3s.spl.interpretation.KindergartenMath;
+import cz.cuni.mff.d3s.spl.interpretation.KindergartenInterpretation;
 
 @Ignore
 public class InterpretationForTests implements Interpretation {
@@ -31,12 +31,12 @@ public class InterpretationForTests implements Interpretation {
 
 	@Override
 	public ComparisonResult compare(DataSnapshot left, DataSnapshot right) {
-		return KindergartenMath.INSTANCE.compare(left, right);
+		return KindergartenInterpretation.INSTANCE.compare(left, right);
 	}
 
 	@Override
 	public ComparisonResult compare(DataSnapshot data, double value) {
-		return KindergartenMath.INSTANCE.compare(data, value);
+		return KindergartenInterpretation.INSTANCE.compare(data, value);
 	}
 
 
