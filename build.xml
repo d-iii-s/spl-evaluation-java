@@ -49,6 +49,9 @@
 				includeantruntime="false">
 			<src path="${java.src.dir}" />
 			<src path="${parser.build.dir}" />
+			<classpath>
+				<pathelement path="${lib.dir}/commons-math3-3.3.jar" />
+			</classpath>
 			<compilerarg value="-Xlint:all"/>
 		</javac>
 	</target>
@@ -70,6 +73,7 @@
 			<classpath>
 				<pathelement path="${junit.jar.path}"/>
 				<pathelement path="${classes.build.dir}" />
+				<pathelement path="${lib.dir}/commons-math3-3.3.jar" />
 			</classpath>
 			<compilerarg value="-Xlint:all"/>
 		</javac>
@@ -100,8 +104,7 @@
 			<packageset
 				dir="${parser.build.dir}"
 				defaultexcludes="yes" />
-			<classpath path="${lib.dir}/javassist.jar" />
-			<classpath path="${lib.dir}/gral-core-0.9-SNAPSHOT.jar" />
+			<classpath path="${lib.dir}/commons-math3-3.3.jar" />
 			<doctitle>
 				<![CDATA[<h1>
 				Stochastic Performance Logic (SPL) evaluation engine</h1>
@@ -123,6 +126,7 @@
 				<pathelement path="${junit.jar.path}"/>
 				<pathelement path="${test.classes.build.dir}"/>
 				<pathelement path="${classes.build.dir}"/>
+				<pathelement path="${lib.dir}/commons-math3-3.3.jar" />
 			</classpath>
 			
 			<formatter type="plain" />
