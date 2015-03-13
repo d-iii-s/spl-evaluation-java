@@ -1,6 +1,6 @@
 /*
- * Copyright 2014 Charles University in Prague
- * Copyright 2014 Vojtech Horky
+ * Copyright 2015 Charles University in Prague
+ * Copyright 2015 Vojtech Horky
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
