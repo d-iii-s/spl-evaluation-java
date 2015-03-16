@@ -52,11 +52,20 @@ public class WelchTestInterpretationTest  {
 		
 	
 	@Test
-	public void smokeTest() {
+	public void smokeTestForTwoSnapshots() {
 		Interpretation intr = new WelchTestInterpretation();
 		ComparisonResult result = intr.compare(SNAPSHOT_1, SNAPSHOT_2);
 		
 		assertEquals(-11.313708499, result.getStatistic(), 0.000001);
+		assertEquals(ComparisonResult.Relation.LESS_THAN, result.get(0.2));
+	}
+	
+	@Test
+	public void smokeTestForOneSnapshot() {
+		Interpretation intr = new WelchTestInterpretation();
+		ComparisonResult result = intr.compare(SNAPSHOT_1, 2.);
+		
+		assertEquals(-3, result.getStatistic(), 0.000001);
 		assertEquals(ComparisonResult.Relation.LESS_THAN, result.get(0.2));
 	}
 }

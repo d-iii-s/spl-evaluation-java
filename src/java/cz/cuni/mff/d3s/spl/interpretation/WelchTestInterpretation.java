@@ -50,7 +50,14 @@ public class WelchTestInterpretation implements Interpretation {
 	/** {@inheritDoc} */
 	@Override
 	public ComparisonResult compare(DataSnapshot data, double value) {
-		throw new UnsupportedOperationException("Not yet implemented.");
+		BenchmarkRunSummary snapshotSummary = computeMergedStatistic(data);
+				
+		statistic = getStatistic(snapshotSummary, value);
+		
+		double freedomDeg = snapshotSummary.getSize() - 1;
+		distribution = new TDistribution(freedomDeg);
+		
+		return new DistributionBasedComparisonResult(statistic, distribution);
 	}
 
 	private BenchmarkRunSummary computeMergedStatistic(DataSnapshot data) {
@@ -63,6 +70,10 @@ public class WelchTestInterpretation implements Interpretation {
 		double numer = x.getMean() - y.getMean();
 		double denom2 = x.getVariance() / x.getSize() + y.getVariance() / y.getSize();
 		return (numer) / Math.sqrt(denom2);
+	}
+	
+	private double getStatistic(BenchmarkRunSummary x, double mean) {
+		return (x.getMean() - mean) / (Math.sqrt(x.getVariance()) / Math.sqrt(x.getSize()));
 	}
 	
 	private double getDegreesOfFreedom(BenchmarkRunSummary x, BenchmarkRunSummary y) {
