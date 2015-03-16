@@ -69,5 +69,10 @@ public class DataSnapshotBuilder {
 			return runs;
 		}
 
+		@Override
+		public DataSnapshot getPreviousEpoch() {
+			throw new UnsupportedOperationException("Not available.");
+		}
+
 	}
 }

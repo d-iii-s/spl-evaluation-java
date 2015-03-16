@@ -56,6 +56,11 @@ public class DataForTest implements DataSource {
 		public Iterable<BenchmarkRun> getRuns() {
 			return Arrays.asList(run);
 		}
+
+		@Override
+		public DataSnapshot getPreviousEpoch() {
+			throw new UnsupportedOperationException("Not available.");
+		}
 	}
 	
 	private SnapshotForTests snapshot;

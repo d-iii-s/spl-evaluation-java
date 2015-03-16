@@ -18,7 +18,6 @@ package cz.cuni.mff.d3s.spl;
 
 /** A snapshot of the performance data.
  */
-@SuppressWarnings("javadoc")
 public interface DataSnapshot {
 	/** Tells number of runs contained in this snapshot.
 	 *
@@ -40,5 +39,21 @@ public interface DataSnapshot {
 	 * @return All runs in the order they were added.
 	 */
 	Iterable<BenchmarkRun> getRuns();
+	
+	/** Get access to historical data.
+	 * 
+	 * <p>
+	 * This is needed for special interpretations that learn from historical
+	 * data to better predict future trends.
+	 * 
+	 * <p>
+	 * If there are not historical data, the method shall return null.
+	 * If getting historical data is not supported, the method shall throw
+	 * UnsupportedOperationException.
+	 * 
+	 * @return Data describing previous epoch (such as previous version).
+	 * @throws UnsupportedOperationException This operation is not implemented.
+	 */
+	DataSnapshot getPreviousEpoch();
 }
 
