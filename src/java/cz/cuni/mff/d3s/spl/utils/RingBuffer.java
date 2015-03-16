@@ -53,4 +53,8 @@ public class RingBuffer<E> {
 	public synchronized Collection<E> get() {
 		return Collections.unmodifiableCollection(data);
 	}
+	
+	public int getRingSize() {
+		return maxSize;
+	}
 }

@@ -16,6 +16,8 @@
  */
 package cz.cuni.mff.d3s.spl.data;
 
+import java.util.Collection;
+
 import cz.cuni.mff.d3s.spl.BenchmarkRun;
 import cz.cuni.mff.d3s.spl.DataSnapshot;
 import cz.cuni.mff.d3s.spl.DataSource;
@@ -70,12 +72,26 @@ public class RingDataSource implements DataSource {
 	@Override
 	public synchronized DataSnapshot makeSnapshot() {
 		DataSnapshotBuilder builder = new DataSnapshotBuilder();
-		for (BenchmarkRun run : runs.get()) {
-			builder.addRun(run);
+		
+		Collection<BenchmarkRun> currentRuns = runs.get();
+		
+		int start = 0;
+		if ((lastRun != null) && (currentRuns.size() == runs.getRingSize())) {
+			start = 1;
 		}
+		
+		int index = 0;
+		for (BenchmarkRun run : currentRuns) {
+			if (index >= start) {
+				builder.addRun(run);
+			}
+			index++;
+		}
+		
 		if (lastRun != null) {
 			builder.addRun(new ImmutableBenchmarkRun(lastRun.get()));
 		}
+		
 		return builder.create();
 	}
 }
