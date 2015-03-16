@@ -24,12 +24,13 @@ import java.util.List;
 import org.junit.Ignore;
 
 import cz.cuni.mff.d3s.spl.BenchmarkRun;
+import cz.cuni.mff.d3s.spl.DataSnapshot;
 
 @Ignore
 public class TestUtils {
 	private static final Long[] LONG_ARRAY_TYPE = new Long[0];
 	
-	public static void assertBenchmarkRun(BenchmarkRun run, int... samples) {
+	public static void assertBenchmarkRun(BenchmarkRun run, long... samples) {
 		List<Long> actual = new ArrayList<>(samples.length);
 		for (Long s : run.getSamples()) {
 			actual.add(s);
@@ -37,9 +38,17 @@ public class TestUtils {
 		
 		Long[] expected = new Long[samples.length];
 		for (int i = 0; i < samples.length; i++) {
-			expected[i] = (long) samples[i];
+			expected[i] = samples[i];
 		}
 		
 		assertArrayEquals(expected, actual.toArray(LONG_ARRAY_TYPE)); 
+	}
+	
+	public static void assertDataSnapshot(DataSnapshot snapshot, long[][] samples) {
+		assertEquals(snapshot.getRunCount(), samples.length);
+		
+		for (int i = 0; i < samples.length; i++) {
+			assertBenchmarkRun(snapshot.getRun(i), samples[i]);
+		}
 	}
 }
