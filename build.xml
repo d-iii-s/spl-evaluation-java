@@ -134,6 +134,8 @@
 			
 			<batchtest fork="yes" todir="${test.results.dir}">
 				<fileset dir="${test.classes.build.dir}">
+					<exclude name="**/cz/cuni/mff/d3s/spl/tests/**" />
+					<exclude name="**/LogicOpTestBase.class" />
 					<include name="**/${tests.to.execute}.class"/>
 				</fileset>
 			</batchtest>
