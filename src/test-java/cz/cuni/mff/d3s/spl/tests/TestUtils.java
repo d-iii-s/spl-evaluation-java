@@ -44,11 +44,33 @@ public class TestUtils {
 		assertArrayEquals(expected, actual.toArray(LONG_ARRAY_TYPE)); 
 	}
 	
-	public static void assertDataSnapshot(DataSnapshot snapshot, long[][] samples) {
-		assertEquals(snapshot.getRunCount(), samples.length);
-		
-		for (int i = 0; i < samples.length; i++) {
-			assertBenchmarkRun(snapshot.getRun(i), samples[i]);
+	public static void assertDataSnapshot(DataSnapshot snapshot, long[][] allSamples) {
+		int runIndex = 0;
+
+		for (long[] samples : allSamples) {
+			if (samples == null) {
+				/* Look into history. */
+				assertEquals(runIndex, snapshot.getRunCount());
+				snapshot = snapshot.getPreviousEpoch();
+				runIndex = 0;
+				continue;
+			}
+			
+			assertBenchmarkRun(snapshot.getRun(runIndex), samples);
+			
+			runIndex++;
 		}
+		
+		assertEquals(runIndex, snapshot.getRunCount());
+		
+		/* Either epochs are not supported or we have reach the last one. */
+		try {
+			DataSnapshot previousEpoch = snapshot.getPreviousEpoch();
+			assertNull(previousEpoch);
+		} catch (UnsupportedOperationException e) {
+			assertTrue(true);
+		}
+		
+		
 	}
 }

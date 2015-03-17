@@ -24,7 +24,7 @@ public class RingDataSourceTest {
 	
 	@Test
 	public void singleRunSingleSample() {
-		RingDataSource src = RingDataSource.create(1, 1);
+		RingDataSource src = RingDataSource.create(0, 1, 1);
 		
 		src.startRun();
 		src.addSamples(5);
@@ -103,6 +103,48 @@ public class RingDataSourceTest {
 		TestUtils.assertDataSnapshot(src.makeSnapshot(), new long[][] {
 			new long[] { 9, 10, 11 },
 			new long[] { 12, 13 }
+		});
+	}
+	
+	@Test
+	public void twoRunsTwoEpochsUnlimitedSamples() {
+		RingDataSource src = RingDataSource.create(2, 2, Integer.MAX_VALUE);
+		
+		src.startRun();
+		src.addSamples(5, 10);
+		
+		TestUtils.assertDataSnapshot(src.makeSnapshot(), new long[][] {
+			new long[] { 5, 10 }
+		});
+		
+		src.startRun();
+		src.addSamples(11, 12, 13);
+		
+		src.startRun();
+		src.addSamples(14, 16, 18, 20);
+		
+		TestUtils.assertDataSnapshot(src.makeSnapshot(), new long[][] {
+			new long[] { 11, 12, 13 },
+			new long[] { 14, 16, 18, 20 }
+		});
+		
+		src.startEpoch();
+		
+		src.startRun();
+		src.addSamples(21, 22);
+		
+		src.startRun();
+		src.addSamples(23, 24);
+		
+		src.startRun();
+		src.addSamples(25, 27, 29);
+		
+		TestUtils.assertDataSnapshot(src.makeSnapshot(), new long[][] {
+			new long[] { 23, 24 },
+			new long[] { 25, 27, 29 },
+			null,
+			new long[] { 11, 12, 13 },
+			new long[] { 14, 16, 18, 20 }
 		});
 	}
 }

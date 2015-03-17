@@ -31,7 +31,7 @@ public class NaiveComparisonOfCollections {
 			for (int i = 0; i < collectionSize; i++) {
 				collection.add(i);
 			}
-			data = RingDataSource.create(1, SAMPLES_COLLECTED);
+			data = RingDataSource.create(0, 1, SAMPLES_COLLECTED);
 			data.startRun();
 		}
 		

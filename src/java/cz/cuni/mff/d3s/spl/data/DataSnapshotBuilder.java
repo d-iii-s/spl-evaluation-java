@@ -29,29 +29,37 @@ import cz.cuni.mff.d3s.spl.DataSnapshot;
  */
 public class DataSnapshotBuilder {
 	private List<BenchmarkRun> runs = new LinkedList<>();
+	private DataSnapshot prevEpoch = null;
 		
 	public DataSnapshotBuilder() {
 	}
 	
 	public synchronized DataSnapshot create() {
-		return new Snapshot(runs);
+		return new Snapshot(runs, prevEpoch);
 	}
 	
-	public DataSnapshotBuilder addRun(BenchmarkRun run) {
+	public synchronized DataSnapshotBuilder setPreviousEpoch(DataSnapshot snapshot) {
+		prevEpoch = snapshot;
+		return this;
+	}
+	
+	public synchronized DataSnapshotBuilder addRun(BenchmarkRun run) {
 		runs.add(new ImmutableBenchmarkRun(run));
 		return this;
 	}
 	
 	private static class Snapshot implements DataSnapshot {
 		private List<BenchmarkRun> runs;
+		private DataSnapshot prevEpoch;
 		
-		public Snapshot(List<BenchmarkRun> data) {
+		public Snapshot(List<BenchmarkRun> data, DataSnapshot prev) {
 			synchronized (data) {
 				runs = new ArrayList<>(data.size());
 				for (BenchmarkRun run : data) {
 					runs.add(run);
 				}
 			}
+			prevEpoch = prev;
 		}
 
 		@Override
@@ -71,7 +79,7 @@ public class DataSnapshotBuilder {
 
 		@Override
 		public DataSnapshot getPreviousEpoch() {
-			throw new UnsupportedOperationException("Not available.");
+			return prevEpoch;
 		}
 
 	}
