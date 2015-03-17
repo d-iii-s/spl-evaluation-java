@@ -16,11 +16,67 @@
  */
 package cz.cuni.mff.d3s.spl.data;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import cz.cuni.mff.d3s.spl.BenchmarkRun;
+import cz.cuni.mff.d3s.spl.utils.StatisticsUtils;
 
 /** Helper methods for working with the BenchmarkRun interface.
  */
 public class BenchmarkRunUtils  {
+	/** Aggregates all samples from a benchmark run.
+	 */ 
+	public static interface Reducer {
+		/** Reduce benchmark run to a single value.
+		 * 
+		 * @param run Benchmark run to be reduced.
+		 * @return Aggregate of the benchmark depending on the implementation.
+		 */
+		public double reduce(BenchmarkRun run);
+	}
+	
+	/** Compute mean of a run. */
+	protected static class MeanReducer implements Reducer {
+		/** {@inheritDoc} */
+		@Override
+		public double reduce(BenchmarkRun run) {
+			return StatisticsUtils.mean(toDoubleArray(run));
+		}		
+	}
+	
+	/** Compute variance of a run. */
+	protected static class VarianceReducer implements Reducer {
+		/** {@inheritDoc} */
+		@Override
+		public double reduce(BenchmarkRun run) {
+			return StatisticsUtils.variance(toDoubleArray(run));
+		}		
+	}
+	
+	/** Compute variance of a run without bias correction. */
+	protected static class VarianceNReducer implements Reducer {
+		/** {@inheritDoc} */
+		@Override
+		public double reduce(BenchmarkRun run) {
+			return StatisticsUtils.varianceN(toDoubleArray(run));
+		}		
+	}
+	
+	/** Convert benchmark run to an array of doubles.
+	 * 
+	 * @param run Benchmark run to be converted.
+	 * @return Array of doubles - samples in the run.
+	 */
+	public static double[] toDoubleArray(BenchmarkRun run) {
+		synchronized (run) {
+			double[] result = new double[run.getSampleCount()];
+			for (int i = 0; i < result.length; i++) {
+				result[i] = run.getSample(i);
+			}
+			return result;
+		}
+	}
 	
 	/** Merge individual benchmark runs into a single one.
 	 * 
@@ -45,5 +101,33 @@ public class BenchmarkRunUtils  {
 		}
 		
 		return builder.create();
+	}
+	
+	/** Reducer for mean computation from a benchmark run. */
+	public static final Reducer MEAN = new MeanReducer();
+	
+	/** Reducer for variance computation from a benchmark run. */
+	public static final Reducer VARIANCE = new VarianceReducer();
+	
+	/** Reducer for variance computation without bias correction from a benchmark run. */
+	public static final Reducer VARIANCE_N = new VarianceNReducer();
+	
+	/** Reduce multiple runs, each to a single double value.
+	 * 
+	 * @param runs Runs to be reduced.
+	 * @param reducer Reducer to be used, see available reduced in this class.
+	 * @return Each run represented as a single value in the collection.
+	 */
+	public static Collection<Double> reduce(Iterable<BenchmarkRun> runs, Reducer reducer) {
+		Collection<Double> result = new ArrayList<>();
+		synchronized (runs) {
+			for (BenchmarkRun run : runs) {
+				synchronized (run) {
+					result.add(reducer.reduce(run));
+				}
+			}
+		}
+		
+		return result;
 	}
 }

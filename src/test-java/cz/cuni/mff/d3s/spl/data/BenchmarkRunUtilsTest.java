@@ -16,9 +16,13 @@
  */
 package cz.cuni.mff.d3s.spl.data;
 
+import static org.junit.Assert.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import cz.cuni.mff.d3s.spl.BenchmarkRun;
@@ -27,6 +31,19 @@ import cz.cuni.mff.d3s.spl.tests.TestUtils;
 public class BenchmarkRunUtilsTest {
 	private static final Iterable<BenchmarkRun> NO_RUNS = new ArrayList<BenchmarkRun>();
 	
+	private static final BenchmarkRun[] RUNS_ARRAY = new BenchmarkRun[] {
+		new ImmutableBenchmarkRun(0, 1, 2),
+		new ImmutableBenchmarkRun(3, 6, 9),
+		new ImmutableBenchmarkRun(10, 11, 33)
+	};
+	
+	private static Collection<BenchmarkRun> RUNS_COLLECTION;
+	
+	@Before
+	public void prepareRuns() {
+		RUNS_COLLECTION = Arrays.asList(RUNS_ARRAY);
+	}
+	
 	@Test
 	public void mergeNoRuns() {
 		TestUtils.assertBenchmarkRun(BenchmarkRunUtils.merge(NO_RUNS));
@@ -34,15 +51,20 @@ public class BenchmarkRunUtilsTest {
 	
 	@Test
 	public void mergeSeveralRuns() {
-		BenchmarkRun[] runs = new BenchmarkRun[] {
-			new ImmutableBenchmarkRun(0, 1, 2),
-			new ImmutableBenchmarkRun(3, 4, 5),
-			new ImmutableBenchmarkRun(6, 7, 8)
-		};
+		BenchmarkRun merged = BenchmarkRunUtils.merge(RUNS_COLLECTION);
 		
-		BenchmarkRun merged = BenchmarkRunUtils.merge(Arrays.asList(runs));
-		
-		TestUtils.assertBenchmarkRun(merged, 0, 1, 2, 3, 4, 5, 6, 7, 8);
+		TestUtils.assertBenchmarkRun(merged, 0, 1, 2, 3, 6, 9, 10, 11, 33);
 	}
 	
+	@Test
+	public void meanReducer() {
+		Collection<Double> means = BenchmarkRunUtils.reduce(RUNS_COLLECTION, BenchmarkRunUtils.MEAN);
+		assertEquals(Arrays.asList((Double) 1., 6., 18.), means);
+	}
+	
+	@Test
+	public void varianceReducer() {
+		Collection<Double> vars = BenchmarkRunUtils.reduce(RUNS_COLLECTION, BenchmarkRunUtils.VARIANCE);
+		assertEquals(Arrays.asList((Double) 1., 9., 169.), vars);
+	}
 }
