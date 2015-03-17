@@ -33,7 +33,7 @@ class FormulaParser {
 		try {
 			FormulaParser parser = new FormulaParser(formula);
 			Formula parsedFormula = parser.splFormula();
-			parsedFormula.setInterpretation(KindergartenInterpretation.INSTANCE);
+			parsedFormula.setInterpretation(Defaults.getInterpretation());
 			return parsedFormula;
 		} catch (TokenMgrError e) {
 			throw new FormulaParsingException(e, formula);
