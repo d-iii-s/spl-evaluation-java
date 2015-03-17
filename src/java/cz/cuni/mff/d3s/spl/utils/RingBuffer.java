@@ -43,6 +43,12 @@ public class RingBuffer<E> {
 		maxSize = size;
 	}
 	
+	public static <T> RingBuffer<T> createEmpty() {
+		RingBuffer<T> result = new RingBuffer<>();
+		result.maxSize = 0;
+		return result;
+	}
+	
 	public synchronized void add(E element) {
 		data.add(element);
 		if (data.size() > maxSize) {
