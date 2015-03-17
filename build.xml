@@ -147,6 +147,23 @@
 			<report format="frames" todir="${test.results.dir}/html"/>
 		</junitreport>
 	</target>
+	
+	<target name="run-demo" depends="run-demo-regression-tester">
+	</target>
+	
+	<target name="run-demo-regression-tester" depends="compile-demos,compile">
+		<java classname="cz.cuni.mff.d3s.spl.demo.DirectoryBasedRegressionTester">
+			<classpath>
+				<pathelement path="${classes.build.dir}" />
+				<pathelement path="${demo.classes.build.dir}" />
+				<pathelement path="${lib.dir}/commons-math3-3.3.jar" />
+			</classpath>
+			<arg file="src/demo-data/simple/ver1" />
+			<arg file="src/demo-data/simple/ver2" />
+			<arg file="src/demo-data/simple/ver3" />
+			<arg file="src/demo-data/simple/ver4" />
+		</java>
+	</target>
 		
 	<target name="clean">
 		<delete dir="${build.dir}" />
