@@ -28,24 +28,34 @@ import cz.cuni.mff.d3s.spl.Interpretation;
 import cz.cuni.mff.d3s.spl.data.DataSnapshotBuilder;
 import cz.cuni.mff.d3s.spl.data.ImmutableBenchmarkRun;
 
+/** Test for the distribution-learning interpretation.
+ *
+ * Note that we test only the basic properties and not precise values because
+ * the actual values are random and bound to change between runs.
+ *
+ */
 public class DistributionLearningInterpretationTest  {
-	private static final double EPSILON = 0.1;
+	private static final double EPSILON = 0.000001;
 	
 	private static final long[] RUN_1_1 = new long[] {10, 10, 12, 10 };
 	private static final long[] RUN_1_2 = new long[] {10, 12, 9, 10 };
 	private static final long[] RUN_2_1 = new long[] {10, 10, 11, 10 };
 	private static final long[] RUN_2_2 = new long[] {10, 10, 10, 9 };
+	private static final long[] RUN_3_1 = new long[] {110, 110, 111, 110 };
+	private static final long[] RUN_3_2 = new long[] {110, 110, 110, 109 };
 	
 	private Interpretation interpretation;
 	
 	private DataSnapshot SNAPSHOT_1;
 	private DataSnapshot SNAPSHOT_2;
+	private DataSnapshot SNAPSHOT_3;
 	
 	@Before
 	public void prepareSnapshots() {
 		SNAPSHOT_1 = makeSnapshot(null, RUN_1_1, RUN_1_2);
 		SNAPSHOT_1 = makeSnapshot(SNAPSHOT_1, RUN_1_1, RUN_1_2);
 		SNAPSHOT_2 = makeSnapshot(null, RUN_2_1, RUN_2_2);
+		SNAPSHOT_3 = makeSnapshot(null, RUN_3_1, RUN_3_2);
 	}
 	
 	@Before
@@ -70,10 +80,16 @@ public class DistributionLearningInterpretationTest  {
 	public void smokeTestForTwoSnapshots() {
 		ComparisonResult result = interpretation.compare(SNAPSHOT_1, SNAPSHOT_2);
 		
-		assertEquals(0.375, result.getStatistic(), 0.000001);
+		assertEquals(0.375, result.getStatistic(), EPSILON);
 		assertEquals(ComparisonResult.Relation.GREATER_THAN, result.get(0.2));
-		assertEquals(-0.65, result.getCriticalValue(0.1), EPSILON);
-		assertEquals(-0.84, result.getCriticalValue(0.05), EPSILON);
+	}
+	
+	@Test
+	public void smokeTestForHugeDifference() {
+		ComparisonResult result = interpretation.compare(SNAPSHOT_1, SNAPSHOT_3);
+		
+		assertEquals(-99.625, result.getStatistic(), EPSILON);
+		assertEquals(ComparisonResult.Relation.LESS_THAN, result.get(0.01));
 	}
 	
 	@Test
