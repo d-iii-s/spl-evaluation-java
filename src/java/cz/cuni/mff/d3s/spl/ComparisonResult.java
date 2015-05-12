@@ -37,13 +37,36 @@ public interface ComparisonResult {
 	 */
 	public enum Relation {
 		/** It is not possible to tell the relation at given significance level. */
-		UNKNOWN,
+		UNKNOWN {
+			@Override
+			public String toShortString() {
+				return "?";
+			}
+		},
 		/** The first (left) data set is smaller than the second (right) one. */
-		LESS_THAN,
+		LESS_THAN {
+			@Override
+			public String toShortString() {
+				return "<";
+			}
+		},
 		/** The data sets are considered equal. */
-		EQUAL,
+		EQUAL {
+			@Override
+			public String toShortString() {
+				return "=";
+			}
+		},
 		/** The first (left) data set is greater than the second (right) one. */
-		GREATER_THAN
+		GREATER_THAN {
+			@Override
+			public String toShortString() {
+				return ">";
+			}
+		};
+		
+		/** Get relation as short string. */
+		public abstract String toShortString();
 	};
 	
 	/** Get the actual result.
