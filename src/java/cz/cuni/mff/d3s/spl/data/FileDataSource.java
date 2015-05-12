@@ -21,6 +21,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import cz.cuni.mff.d3s.spl.BenchmarkRun;
@@ -43,6 +44,17 @@ public class FileDataSource implements DataSource {
 	 */
 	public static FileDataSource load(File... files) {
 		FileDataSource result = new FileDataSource(files);
+		result.reload();
+		return result;
+	}
+	
+	/** Create a data source from given files.
+	 * 
+	 * @param files List of files to read from (sample per line).
+	 * @return Data source backed by the files.
+	 */
+	public static FileDataSource load(Collection<File> files) {
+		FileDataSource result = new FileDataSource(files.toArray(new File[0]));
 		result.reload();
 		return result;
 	}
