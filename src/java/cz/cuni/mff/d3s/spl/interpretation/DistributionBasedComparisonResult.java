@@ -50,7 +50,7 @@ public class DistributionBasedComparisonResult implements ComparisonResult {
 		
 		if (!lt && !gt) {
 			return Relation.EQUAL;
-		} else if(lt) {
+		} else if (lt) {
 			return Relation.GREATER_THAN;
 		} else {
 			return Relation.LESS_THAN;
