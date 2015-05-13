@@ -16,8 +16,8 @@
  */
 package cz.cuni.mff.d3s.spl.interpretation;
 
-import java.util.Collection;
-import java.util.LinkedList;
+import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -40,33 +40,121 @@ import cz.cuni.mff.d3s.spl.utils.StatisticsUtils;
  * <a href="http://d3s.mff.cuni.cz/publications/download/D3S-TR-2014-04.pdf">SPL:
  * Unit Testing Performance</a> by
  * Bulej, Bures, Horky, Kotrc, Marek, Trojanek and Tuma for details.
-*
-*/
+ *
+ */
 public class DistributionLearningInterpretation implements Interpretation {
-	private Random bootstrapRandom = new Random();
+	private Random bootstrapRandom = new Random(0);
+	
+	private final int bootstrapSizeInnerMeans;
+	private final int bootstrapSizeOuterMeans;
+	private final int diffDistributionSampleCount;
+	private PrintStream debug = null;
 	
 	public DistributionLearningInterpretation() {
+		this(1000, 10000, 100000);
 	}
+	
+	private DistributionLearningInterpretation(int innerMeansSize, int outerMeansSize, int diffDistrSize) {
+		bootstrapSizeInnerMeans = innerMeansSize;
+		bootstrapSizeOuterMeans = outerMeansSize;
+		diffDistributionSampleCount = diffDistrSize;
+	}
+	
+	public static DistributionLearningInterpretation getDebug(PrintStream output) {
+		DistributionLearningInterpretation result = new DistributionLearningInterpretation();
+		result.debug = output;
+		return result;
+	}
+	
+	public static DistributionLearningInterpretation getDebugFast(PrintStream output) {
+		DistributionLearningInterpretation result = getFast();
+		result.debug = output;
+		return result;
+	}
+	
+	public static DistributionLearningInterpretation getFast() {
+		DistributionLearningInterpretation result = new DistributionLearningInterpretation(100, 100, 1000);
+		return result;
+	}
+	
 
 	/** {@inheritDoc} */
 	@Override
 	public ComparisonResult compare(DataSnapshot left, DataSnapshot right) {
-		Collection<BenchmarkRun> historicalRuns = getHistoricalRuns(left, right);
+		double leftMean = computeMean(left);
+		double rightMean = computeMean(right);
 		
-		RealDistribution historicalDistribution = makeBootstrappedEmpiricalDistribution(historicalRuns);
+		if (debug != null) {
+			debug.println("DistributionLearningInterpreation.compare");
+			debug.printf("means: %15.3f %15.3f\n", leftMean, rightMean);
+		}
 		
-		RealDistribution diffDistribution = makeDiffDistribution(historicalDistribution, historicalDistribution);
-				
-		double statistic = computeMean(left) - computeMean(right);
+		RealDistribution leftDistr = boostrapEmpirical(left, -leftMean);
+		if (debug != null) {
+			debug.printf("left boostrapped:");
+			showDistribution(leftDistr);
+		}
 		
-		return new DistributionBasedComparisonResult(statistic, diffDistribution);
+		RealDistribution rightDistr = boostrapEmpirical(right, -rightMean);
+		if (debug != null) {
+			debug.printf("right boostrapped:");
+			showDistribution(rightDistr);
+		}
+		
+		RealDistribution diffDistr = substractDistributions(leftDistr, rightDistr);
+		if (debug != null) {
+			debug.printf("diff distribution:");
+			showDistribution(diffDistr);
+		}
+		
+		double statistic = leftMean - rightMean;
+		
+		return new DistributionBasedComparisonResult(statistic, diffDistr);
 	}
-
+	
 	/** {@inheritDoc} */
 	@Override
 	public ComparisonResult compare(DataSnapshot data, double value) {
 		throw new UnsupportedOperationException("This is not yet implemented.");
 	}
+	
+	
+	private RealDistribution boostrapEmpirical(DataSnapshot data, double shift) {
+		List<BenchmarkRun> runs = new ArrayList<>(data.getRunCount());
+		for (BenchmarkRun run : data.getRuns()) {
+			runs.add(run);
+		}
+		
+		int runCount = runs.size();
+		
+		double[] runMeans = new double[runCount * bootstrapSizeInnerMeans];
+		int startIndex = 0;
+		for (int i = 0; i < runCount; i++, startIndex += bootstrapSizeInnerMeans) {
+			double[] samples = BenchmarkRunUtils.toDoubleArray(runs.get(i));
+			bootstrapWithMean(samples, samples.length, bootstrapSizeInnerMeans, runMeans, startIndex);
+		}
+		
+		double[] finalSamples = new double[bootstrapSizeOuterMeans];
+		bootstrapWithMean(runMeans, runs.size(), bootstrapSizeOuterMeans, finalSamples, 0);
+		
+		for (int i = 0; i < finalSamples.length; i++) {
+			finalSamples[i] += shift;
+		}
+		
+		return DistributionUtils.makeEmpirical(finalSamples);
+	}
+	
+	private RealDistribution substractDistributions(RealDistribution left, RealDistribution right) {
+		double[] leftSamples = left.sample(diffDistributionSampleCount);
+		double[] rightSamples = left.sample(diffDistributionSampleCount);
+		
+		for (int i = 0; i < leftSamples.length; i++) {
+			leftSamples[i] -= rightSamples[i];
+		}
+		
+		return DistributionUtils.makeEmpirical(leftSamples);
+	}
+	
 	
 	private double computeMean(DataSnapshot data) {
 		BenchmarkRun merged = BenchmarkRunUtils.merge(data.getRuns());
@@ -74,55 +162,6 @@ public class DistributionLearningInterpretation implements Interpretation {
 		BenchmarkRunSummary summary = new BenchmarkRunSummary(merged);
 		
 		return summary.getMean();
-	}
-	
-
-	private Collection<BenchmarkRun> getHistoricalRuns(DataSnapshot left,
-			DataSnapshot right) {
-		List<BenchmarkRun> result = new LinkedList<>();
-		
-		addHistoricalData(result, left);
-		addHistoricalData(result, right);
-		
-		return result;
-	}
-	
-	private void addHistoricalData(List<BenchmarkRun> historicalRuns, DataSnapshot currentData) {
-		try {
-			DataSnapshot historicalData = currentData.getPreviousEpoch();
-			if (historicalData == null) {
-				return;
-			}
-			
-			for (BenchmarkRun run : historicalData.getRuns()) {
-				historicalRuns.add(run);
-			}
-		} catch (UnsupportedOperationException e) {
-			// Ignore.
-		}		
-	}
-	
-	private RealDistribution makeBootstrappedEmpiricalDistribution(Collection<BenchmarkRun> baseRuns) {
-		int setsNo = baseRuns.size();
-		
-		int insideRunIter = 100;
-		int outsideRunIter = 20;
-		
-		insideRunIter = 1000;
-		outsideRunIter = 1000*100;
-		
-		double[] Pxn = new double[setsNo * insideRunIter];
-		int startIndex = 0;
-		for (BenchmarkRun run : baseRuns) {
-			double[] samples = BenchmarkRunUtils.toDoubleArray(run);
-			bootstrapWithMean(samples, samples.length, insideRunIter, Pxn, startIndex);
-			startIndex += insideRunIter;
-		}
-		
-		double[] finalSamples = new double[outsideRunIter];
-		bootstrapWithMean(Pxn, baseRuns.size(), outsideRunIter, finalSamples, 0);
-		
-		return DistributionUtils.makeEmpirical(finalSamples);
 	}
 	
 	private void bootstrapWithMean(double[] data, int bootstrapLength, int count, double[] result, int resultStartIndex) {
@@ -134,20 +173,11 @@ public class DistributionLearningInterpretation implements Interpretation {
 		}
 	}
 	
-	private RealDistribution makeDiffDistribution(RealDistribution d1, RealDistribution d2) {
-		int iters = 1000;
-		iters = 1000 * 1000;
-		
-		double[] samples = new double[iters];
-		
-		for (int i = 0; i < iters; i++) {
-			samples[i] = d1.sample();
+	private void showDistribution(RealDistribution distr) {
+		assert debug != null;
+		for (int i = 0; i < 10; i++) {
+			debug.printf("  %.3f", distr.sample());
 		}
-		
-		for (int i = 0; i < iters; i++) {
-			samples[i] -= d2.sample();
-		}
-		
-		return DistributionUtils.makeEmpirical(samples);
+		debug.println();
 	}
 }
