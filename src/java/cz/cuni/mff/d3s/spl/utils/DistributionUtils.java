@@ -16,43 +16,27 @@
  */
 package cz.cuni.mff.d3s.spl.utils;
 
-import java.util.Arrays;
-
 import org.apache.commons.math3.random.EmpiricalDistribution;
+import org.apache.commons.math3.random.JDKRandomGenerator;
+import org.apache.commons.math3.random.RandomGenerator;
 
 /** Helper method for creating mathematical distributions.
  */
 public class DistributionUtils  {
-	private static int countDistinctValues(double[] samples, double epsilon) {
-		if (samples.length <= 1) {
-			return 1;
-		}
 		
-		double[] data = Arrays.copyOf(samples, samples.length);
-		Arrays.sort(data);
-		
-		int count = 1;
-		double previous = data[0];
-		for (double value : data) {
-			if (Math.abs(previous - value) > epsilon) {
-				previous = value;
-				count++;
-			}
-		}
-		return count;
-	}
-	
 	/** Create empirical distribution from given samples.
 	 * 
 	 * @param samples Samples (does not need to be distinct) to use.
 	 * @return Empirical distribution built from the samples.
 	 */
 	public static EmpiricalDistribution makeEmpirical(double[] samples) {
-		int values = countDistinctValues(samples, 0.001);
+		/* Be deterministic for now. */
+		RandomGenerator gen = new JDKRandomGenerator();
+		gen.setSeed(0);
 		
-		EmpiricalDistribution distr = new EmpiricalDistribution(values/10 + 1);
-		distr.load(samples);	
+		EmpiricalDistribution result = new EmpiricalDistribution(samples.length / 10 + 1, gen);
+		result.load(samples);
 		
-		return distr;
+		return result;
 	}
 }
