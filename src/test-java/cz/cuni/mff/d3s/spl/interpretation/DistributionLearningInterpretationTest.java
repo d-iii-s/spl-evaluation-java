@@ -44,7 +44,7 @@ public class DistributionLearningInterpretationTest  {
 	private static final long[] RUN_3_1 = new long[] {110, 110, 111, 110 };
 	private static final long[] RUN_3_2 = new long[] {110, 110, 110, 109 };
 	
-	private Interpretation interpretation;
+	protected Interpretation interpretation;
 	
 	private DataSnapshot SNAPSHOT_1;
 	private DataSnapshot SNAPSHOT_2;
