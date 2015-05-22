@@ -69,6 +69,16 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 		return result;
 	}
 	
+	public static DistributionLearningInterpretationParallel get(ExecutorService executor) {
+		DistributionLearningInterpretationParallel result = new DistributionLearningInterpretationParallel(executor);
+		return result;
+	}
+	
+	public static DistributionLearningInterpretationParallel getReasonable(ExecutorService executor) {
+		DistributionLearningInterpretationParallel result = new DistributionLearningInterpretationParallel(executor, 1000, 1000, 10000);
+		return result;
+	}
+	
 
 	/** {@inheritDoc} */
 	@Override

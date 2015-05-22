@@ -77,6 +77,11 @@ public class DistributionLearningInterpretation implements Interpretation {
 		return result;
 	}
 	
+	public static DistributionLearningInterpretation getReasonable() {
+		DistributionLearningInterpretation result = new DistributionLearningInterpretation(1000, 1000, 10000);
+		return result;
+	}
+	
 
 	/** {@inheritDoc} */
 	@Override
