@@ -96,16 +96,19 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 		Future<Double> leftMean = executor.submit(new MeanComputation(left));
 		Future<Double> rightMean = executor.submit(new MeanComputation(right));
 		
-		Future<double[]> leftDistributionSamples = executor.submit(new DoubleBootstrap(left, bootstrapSizeInnerMeans, bootstrapSizeOuterMeans, executor));
-		Future<double[]> rightDistributionSamples = executor.submit(new DoubleBootstrap(right, bootstrapSizeInnerMeans, bootstrapSizeOuterMeans, executor));
+		DataSnapshot[] learningSets = getLearningSets(left, right);
 		
-		Future<double[]> leftDistributionSamplesNormalized = executor.submit(new SubtractFromArray(leftDistributionSamples, leftMean));
-		Future<double[]> rightDistributionSamplesNormalized = executor.submit(new SubtractFromArray(rightDistributionSamples, rightMean));
+		@SuppressWarnings("unchecked")
+		Future<double[]>[] samplesFromEmpiricalDistribution = (Future<double[]>[]) new Future<?>[2];
 		
-		Future<double[]> leftSamples = executor.submit(new SamplesOfEmpiricalDistribution(leftDistributionSamplesNormalized, diffDistributionSampleCount));
-		Future<double[]> rightSamples = executor.submit(new SamplesOfEmpiricalDistribution(rightDistributionSamplesNormalized, diffDistributionSampleCount));
+		for (int i = 0; i < 2; i++) {
+			Future<Double> mean = executor.submit(new MeanComputation(learningSets[i]));
+			Future<double[]> samples = executor.submit(new DoubleBootstrap(learningSets[i], bootstrapSizeInnerMeans, bootstrapSizeOuterMeans, executor));
+			Future<double[]> samplesNormalized = executor.submit(new SubtractFromArray(samples, mean));
+			samplesFromEmpiricalDistribution[i] = executor.submit(new SamplesOfEmpiricalDistribution(samplesNormalized, diffDistributionSampleCount));
+		}
 		
-		Future<double[]> diffSamplesFuture = executor.submit(new ArrayDiff(leftSamples, rightSamples));
+		Future<double[]> diffSamplesFuture = executor.submit(new ArrayDiff(samplesFromEmpiricalDistribution[0], samplesFromEmpiricalDistribution[1]));
 		
 		double statistic = leftMean.get() - rightMean.get();
 		
@@ -122,6 +125,46 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 		throw new UnsupportedOperationException("This is not yet implemented.");
 	}
 	
+	private DataSnapshot[] getLearningSets(DataSnapshot left, DataSnapshot right) {
+		DataSnapshot[] result = new DataSnapshot[2];
+		
+		result[0] = getNonEmptyPreviousEpochDataOrNull(left);
+		result[1] = getNonEmptyPreviousEpochDataOrNull(right);
+		
+		if ((result[0] == null) && (result[1] == null)) {
+			result[0] = left;
+			result[1] = right;
+		} else if (result[0] == null) {
+			result[0] = result[1];
+		} else if (result[1] == null) {
+			result[1] = result[0];
+		}
+		
+		return result;
+	}
+	
+	private DataSnapshot getNonEmptyPreviousEpochDataOrNull(DataSnapshot data) {
+		try  {
+			DataSnapshot result = data.getPreviousEpoch();
+			if ((result == null) || (result.getRunCount() == 0)) {
+				return null;
+			} else {
+				return result;
+			}
+		} catch (UnsupportedOperationException e) {
+			return null;
+		}
+	}
+	
+	private static void bootstrapWithMean(Random rnd, double[] data, int bootstrapLength, int count, double[] result, int resultStartIndex) {
+		double[] tmp = new double[bootstrapLength];
+		
+		for (int i = 0; i < count; i++) {
+			StatisticsUtils.bootstrap(data, tmp, rnd);
+			result[i + resultStartIndex] = StatisticsUtils.mean(tmp);
+		}
+	}
+	
 	private static class MeanComputation implements Callable<Double> {
 		private final DataSnapshot data;
 		
@@ -136,15 +179,6 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 			BenchmarkRunSummary summary = new BenchmarkRunSummary(merged);
 			
 			return summary.getMean();
-		}
-	}
-	
-	private static void bootstrapWithMean(Random rnd, double[] data, int bootstrapLength, int count, double[] result, int resultStartIndex) {
-		double[] tmp = new double[bootstrapLength];
-		
-		for (int i = 0; i < count; i++) {
-			StatisticsUtils.bootstrap(data, tmp, rnd);
-			result[i + resultStartIndex] = StatisticsUtils.mean(tmp);
 		}
 	}
 	
