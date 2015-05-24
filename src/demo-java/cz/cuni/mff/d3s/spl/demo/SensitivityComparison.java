@@ -229,36 +229,42 @@ public class SensitivityComparison {
 		private final SimpleComparison comparison;
 		private final StatisticalTest test;
 		private final double[] alphas;
+		private final int leftLearnSubsetSize;
 		private final int leftSubsetSize;
+		private final int rightLearnSubsetSize;
 		private final int rightSubsetSize;
 
-		public Evaluator(SimpleComparison cmp, int leftSize, int rightSize, StatisticalTest t, double[] alfas) {
+		public Evaluator(SimpleComparison cmp, int leftLearnSize, int leftSize, int rightLearnSize, int rightSize, StatisticalTest t, double[] alfas) {
 			comparison = cmp;
 			test = t;
 			alphas = alfas;
+			leftLearnSubsetSize = leftLearnSize;
 			leftSubsetSize = leftSize;
+			rightLearnSubsetSize = rightLearnSize;
 			rightSubsetSize = rightSize;
 		}
 
 		@Override
 		public void run() {
-			DataSnapshot left = getSubset(comparison.left, leftSubsetSize);
-			DataSnapshot right = getSubset(comparison.right, rightSubsetSize);
+			DataSnapshot left = getSubset(comparison.left, leftSubsetSize, getSubset(comparison.left, leftLearnSubsetSize, null));
+			DataSnapshot right = getSubset(comparison.right, rightSubsetSize, getSubset(comparison.right, rightLearnSubsetSize, null));
 
 			boolean[] result = test.getRejects(left, comparison.op, right,
 					alphas);
 			for (int i = 0; i < result.length; i++) {
 				String name = test.getName(alphas[i]);
-				comparison.addResult(String.format("%s.%d.%d", name, leftSubsetSize, rightSubsetSize), result[i]);
+				String resultId = String.format("%s.%d.%d.%d.%d", name, leftLearnSubsetSize, leftSubsetSize, rightLearnSubsetSize, rightSubsetSize);
+				comparison.addResult(resultId, result[i]);
 			}
 		}
 
-		private DataSnapshot getSubset(DataSnapshot data, int size) {
+		private DataSnapshot getSubset(DataSnapshot data, int size, DataSnapshot prev) {
 			DataSnapshotBuilder builder = new DataSnapshotBuilder();
 			int[] indexes = getRandomIndexes(data.getRunCount(), size);
 			for (int run = 0; run < indexes.length; run++) {
 				builder.addRun(data.getRun(indexes[run]));
 			}
+			builder.setPreviousEpoch(prev);
 			return builder.create();
 		}
 
@@ -336,11 +342,12 @@ public class SensitivityComparison {
 
 		double[] alphas = new double[] { 0.05 };
 		int[][] subsets = new int[][] {
-			{ 1, 1 },
-			//{ 3, 3 },
-			//{ 5, 5 },
-			//{ 7, 7 },
-			{ 10, 10 },
+			{ 10, 1, 10, 1 },
+			{ 30, 1, 30, 1 },
+			{ 30, 3, 30, 3 },
+			{ 50, 1, 50, 1 },
+			{ 50, 3, 50, 3 },
+			{ 50, 10, 50, 10 },
 		};
 
 		int repeats = 5;
@@ -422,7 +429,7 @@ public class SensitivityComparison {
 		for (SimpleComparison comparison : comparisons) {
 			for (StatisticalTest test : tests) {
 				for (int[] subset : subsets) {
-					Evaluator eval = new Evaluator(comparison, subset[0], subset[1], test, alphas);
+					Evaluator eval = new Evaluator(comparison, subset[0], subset[1], subset[2], subset[3], test, alphas);
 					for (int i = 0; i < repeats; i++) {
 						jobs.add(executor.submit(new JobCounterDecorator(eval), 0));
 						JobCounterDecorator.print();
@@ -473,10 +480,10 @@ public class SensitivityComparison {
 		
 		for (SimpleComparison comparison : comparisons) {
 			for (int[] subset : subsets) {
-				System.out.printf("%-30s", String.format("%s %2d:%2d", comparison.name, subset[0], subset[1]));
+				System.out.printf("%-30s", String.format("%s %2d:%2d [%2d:%2d]", comparison.name, subset[0], subset[2], subset[1], subset[3]));
 				for (StatisticalTest test : tests) {
 					for (double alpha : alphas) {
-						String name = String.format("%s.%d.%d", test.getName(alpha), subset[0], subset[1]);
+						String name = String.format("%s.%d.%d.%d.%d", test.getName(alpha), subset[0], subset[1], subset[2], subset[3]);
 						System.out.printf("%15s", comparison.getResult(name));
 					}
 				}
