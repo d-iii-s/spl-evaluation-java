@@ -235,8 +235,10 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 		
 		@Override
 		public double[] call() throws Exception {
-			RealDistribution distr = DistributionUtils.makeEmpirical(samplesFuture.get());
-			return distr.sample(count);
+			double[] result = new double[count];
+			double[] samples = samplesFuture.get();
+			StatisticsUtils.bootstrap(samples, result, new Random());
+			return result;
 		}
 	}
 	
