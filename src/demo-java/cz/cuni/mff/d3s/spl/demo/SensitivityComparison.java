@@ -19,6 +19,8 @@ package cz.cuni.mff.d3s.spl.demo;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,6 +43,7 @@ import cz.cuni.mff.d3s.spl.data.DataSnapshotBuilder;
 import cz.cuni.mff.d3s.spl.data.FileDataSource;
 import cz.cuni.mff.d3s.spl.interpretation.DistributionLearningInterpretationParallel;
 import cz.cuni.mff.d3s.spl.interpretation.WelchTestInterpretation;
+import cz.cuni.mff.d3s.spl.utils.ArrayUtils;
 
 public class SensitivityComparison {
 	private static enum ComparisonOperator {
@@ -113,8 +116,12 @@ public class SensitivityComparison {
 	}
 	
 	private static class LearningTest extends GenericStatisticalTest {
-		public LearningTest(ExecutorService executor) {
-			interpretation = DistributionLearningInterpretationParallel.getReasonable(executor);
+		public LearningTest(ExecutorService executor, boolean beFast) {
+			if (beFast) {
+				interpretation = DistributionLearningInterpretationParallel.getFast(executor);
+			} else {
+				interpretation = DistributionLearningInterpretationParallel.getReasonable(executor);
+			}
 		}
 
 		@Override
@@ -306,7 +313,7 @@ public class SensitivityComparison {
 
 		public static void print() {
 			synchronized (jobsGuard) {
-				System.out.printf("\r%d jobs done (%d planned so far).",
+				System.out.printf("\r# %d jobs done (%d planned so far).",
 						jobsDone, jobsTotal);
 			}
 		}
@@ -323,44 +330,109 @@ public class SensitivityComparison {
 		}
 	}
 
-	public static void main(String[] directoryNames) throws IOException {
+	public static void main(String[] args) throws IOException {
 		int cpuCount = Runtime.getRuntime().availableProcessors();
-		ExecutorService innerExecutor = Executors.newCachedThreadPool();
-		ExecutorService executor = Executors.newFixedThreadPool(cpuCount * 2);
-		System.out.printf("CPU count = %d\n", cpuCount);
+		Collection<Double> alphasCol = new ArrayList<>();
+		Collection<int[]> subsets = new ArrayList<>();
+		Collection<Double> tolerancies = new ArrayList<>();
+		int parallelJobs = cpuCount * 2;
+		int repeats = 10;
+		boolean verbose = false;
+		boolean demo = false;
+		boolean learningTestBeFast = false;
 		
-		StatisticalTest[] tests = new StatisticalTest[] {
-				new TTest(),
-				new LearningTest(innerExecutor),
-				new TolerantTest(new TTest(), 1.01),
-				new TolerantTest(new LearningTest(innerExecutor), 1.01),
-				new TolerantTest(new TTest(), 1.02),
-				new TolerantTest(new LearningTest(innerExecutor), 1.02),
-				new TolerantTest(new TTest(), 1.05),
-				new TolerantTest(new LearningTest(innerExecutor), 1.05),
-		};
-
-		double[] alphas = new double[] { 0.05 };
-		int[][] subsets = new int[][] {
-			{ 10, 1, 10, 1 },
-			{ 30, 1, 30, 1 },
-			{ 30, 3, 30, 3 },
-			{ 50, 1, 50, 1 },
-			{ 50, 3, 50, 3 },
-			{ 50, 10, 50, 10 },
-		};
-
-		int repeats = 5;
+		/* Process command-line options.
+		 * Notice: we are incrementing the counter from inside the
+		 * loop as well.
+		 */
+		for (int i = 0; i <args.length; i++) {
+			if (args[i].equals("--subset")) {
+				String[] sizesStr = args[i+1].split(":");
+				if (sizesStr.length != 4) {
+					System.err.println("--subset expects 4 ints, colon separated");
+					System.exit(1);
+				}
+				int[] sizes = new int[4];
+				for (int j = 0; j < sizes.length; j++) {
+					sizes[j] = Integer.parseInt(sizesStr[j]);
+				}
+				subsets.add(sizes);
+				i++;
+			} else if (args[i].equals("--repeats")) {
+				repeats = Integer.parseInt(args[i+1]);
+				i++;
+			} else if (args[i].equals("--jobs")) {
+				if (args[i+1].startsWith("x")) {
+					parallelJobs = cpuCount * Integer.parseInt(args[i+1].substring(1));
+				} else {
+					parallelJobs = Integer.parseInt(args[i+1]);
+				}
+				i++;
+			} else if (args[i].equals("--alpha")) {
+				double alpha = Double.parseDouble(args[i+1]);
+				alphasCol.add(alpha);
+				i++;
+			} else if (args[i].equals("--tolerancy")) {
+				double tol = Double.parseDouble(args[i+1]);
+				tolerancies.add(tol);
+				i++;
+			} else if (args[i].equals("--fast")) {
+				learningTestBeFast = true;
+			} else if (args[i].equals("--verbose")) {
+				verbose = true;
+			} else if (args[i].equals("--demo")) {
+				demo = true;
+			} else {
+				System.err.println("Unknown command-line option.");
+				System.exit(1);
+			}
+		}
 		
+		
+		/* Set-up the defaults. */
+		if (alphasCol.isEmpty()) {
+			alphasCol.add(0.05);
+		}
+		if (subsets.isEmpty()) {
+			subsets.add(new int[] {10, 1, 10, 1});
+		}
+		
+		
+		/*
+		 * Set-up the executors.
+		 */
+		ExecutorService testInternalExecutor = Executors.newCachedThreadPool();
+		ExecutorService mainExecutor = Executors.newFixedThreadPool(parallelJobs);
+		
+		/*
+		 * Prepare the tests that will be run.
+		 */
+		Collection<StatisticalTest> tests = new ArrayList<>();
+		tests.add(new TTest());
+		tests.add(new LearningTest(testInternalExecutor, learningTestBeFast));
+		for (double tol : tolerancies) {
+			tests.add(new TolerantTest(new TTest(), tol));
+			tests.add(new TolerantTest(new LearningTest(testInternalExecutor, learningTestBeFast), tol));
+		};		
+		
+		/*
+		 * Read the comparisons on which we ought to test.
+		 */
+		Reader input = null;
+		if (demo) {
+			input = new StringReader(
+					String.format("x = x ### %s = %s",
+							getSensitivityDataFilenames(),
+							getSensitivityDataFilenames()));
+		} else {
+			input = new InputStreamReader(System.in);
+		}
+		
+
 		Collection<SimpleComparison> comparisons = new LinkedList<>();
-
-		// BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
-		BufferedReader input = new BufferedReader(new StringReader(
-				String.format("x = x ### %s = %s",
-						getSensitivityDataFilenames(),
-						getSensitivityDataFilenames())));
+		BufferedReader bufferedInput = new BufferedReader(input);
 		while (true) {
-			String line = input.readLine();
+			String line = bufferedInput.readLine();
 			if (line == null) {
 				break;
 			}
@@ -413,16 +485,22 @@ public class SensitivityComparison {
 			SimpleComparison cmp = new SimpleComparison(parts[0], left, cmpOp, right);
 			comparisons.add(cmp);
 		}
-		input.close();
+		bufferedInput.close();
 		
+		/* Convert to array for simpler use. */
+		double[] alphas = ArrayUtils.makeArray(alphasCol);
 		
-		
+		/*
+		 * Let's go :-)
+		 */
 		Collection<Future<Integer>> jobs = new ArrayList<>();
 
-		System.out.printf("Expects %d jobs (%d * %d * %d * %d).\n",
-				comparisons.size() * tests.length * repeats * subsets.length,
-				comparisons.size(), tests.length, subsets.length, repeats);
-
+		if (verbose) {
+			System.out.printf("# Expects %d jobs (%d * %d * %d * %d).\n",
+				comparisons.size() * tests.size() * repeats * subsets.size(),
+				comparisons.size(), tests.size(), subsets.size(), repeats);
+			System.out.printf("# Parallel jobs: %d\n", parallelJobs);
+		}
 		
 		long startTime = System.nanoTime();
 		
@@ -431,8 +509,10 @@ public class SensitivityComparison {
 				for (int[] subset : subsets) {
 					Evaluator eval = new Evaluator(comparison, subset[0], subset[1], subset[2], subset[3], test, alphas);
 					for (int i = 0; i < repeats; i++) {
-						jobs.add(executor.submit(new JobCounterDecorator(eval), 0));
-						JobCounterDecorator.print();
+						jobs.add(mainExecutor.submit(new JobCounterDecorator(eval), 0));
+						if (verbose) {
+							JobCounterDecorator.print();
+						}
 					}
 				}
 			}
@@ -445,9 +525,13 @@ public class SensitivityComparison {
 					allDone = false;
 				}
 			}
-			JobCounterDecorator.print();
+			if (verbose) {
+				JobCounterDecorator.print();
+			}
 			if (allDone) {
-				System.out.println();
+				if (verbose) {
+					System.out.println();
+				}
 				break;
 			}
 			try {
@@ -458,20 +542,22 @@ public class SensitivityComparison {
 
 		long endTime = System.nanoTime();
 		
-		long timeDiff = endTime - startTime;
-		long timeDiffMillis = timeDiff / 1000 / 1000;
-		long timeDiffSec = timeDiffMillis / 1000;
-		long timeDiffMillisPerJob;
-		if (jobs.size() == 0) {
-			timeDiffMillisPerJob = 0;
-		} else {
-			timeDiffMillisPerJob = timeDiffMillis / jobs.size();
+		if (verbose) {
+			long timeDiff = endTime - startTime;
+			long timeDiffMillis = timeDiff / 1000 / 1000;
+			long timeDiffSec = timeDiffMillis / 1000;
+			long timeDiffMillisPerJob;
+			if (jobs.size() == 0) {
+				timeDiffMillisPerJob = 0;
+			} else {
+				timeDiffMillisPerJob = timeDiffMillis / jobs.size();
+			}
+			System.out.printf("# Took %ds for %d jobs (about %dms per job).\n", timeDiffSec, jobs.size(), timeDiffMillisPerJob);
 		}
-		System.out.printf("It took %ds for %d jobs (about %dms per job).\n", timeDiffSec, jobs.size(), timeDiffMillisPerJob);
 		
 		System.out.printf("%-30s", "");
 		for (StatisticalTest test : tests) {
-			for (double alpha : alphas) {
+			for (double alpha : alphasCol) {
 				String name = test.getName(alpha);
 				System.out.printf("%15s", name);
 			}
@@ -482,7 +568,7 @@ public class SensitivityComparison {
 			for (int[] subset : subsets) {
 				System.out.printf("%-30s", String.format("%s %2d:%2d [%2d:%2d]", comparison.name, subset[0], subset[2], subset[1], subset[3]));
 				for (StatisticalTest test : tests) {
-					for (double alpha : alphas) {
+					for (double alpha : alphasCol) {
 						String name = String.format("%s.%d.%d.%d.%d", test.getName(alpha), subset[0], subset[1], subset[2], subset[3]);
 						System.out.printf("%15s", comparison.getResult(name));
 					}
@@ -491,8 +577,8 @@ public class SensitivityComparison {
 			}
 		}
 
-		innerExecutor.shutdown();
-		executor.shutdown();
+		mainExecutor.shutdown();
+		testInternalExecutor.shutdown();
 	}
 	
 	private static String getSensitivityDataFilenames() {
