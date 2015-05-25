@@ -346,7 +346,20 @@ public class SensitivityComparison {
 		 * loop as well.
 		 */
 		for (int i = 0; i <args.length; i++) {
-			if (args[i].equals("--subset")) {
+			if (args[i].equals("--help")) {
+				System.out.printf("Usage: java -cp ... %s [opts]\n", SensitivityComparison.class.getName());
+				System.out.println("where [opts] is a combination of ([mult] .. option can be repeated):");
+				System.out.println(" --help        Print this help.");
+				System.out.println(" --verbose     Print what the program does (incl. progressbar).");
+				System.out.println(" --repeats N   Number of loops for each test.");
+				System.out.println(" --jobs N      Number of parallel jobs (defaults to CPU*2)");
+				System.out.println(" --jobs xN     Number of parallel jobs (multiply of CPU count)");
+				System.out.println(" --alpha A     Significance level [mult].");
+				System.out.println(" --tolerancy X Extra tolerancy for the tests [mult].");
+				System.out.println(" --fast        Use faster (but less precise) implementation.");
+				System.out.println(" --demo        Run on prepackaged data only.");
+				System.exit(0);
+			} else if (args[i].equals("--subset")) {
 				String[] sizesStr = args[i+1].split(":");
 				if (sizesStr.length != 4) {
 					System.err.println("--subset expects 4 ints, colon separated");
