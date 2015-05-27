@@ -44,7 +44,19 @@ public class FileDataSource implements DataSource {
 	 */
 	public static FileDataSource load(File... files) {
 		FileDataSource result = new FileDataSource(files);
-		result.reload();
+		result.reload(0);
+		return result;
+	}
+	
+	/** Create a data source from given files.
+	 * 
+	 * @param skip Skip this number of samples from the beginning of each file.
+	 * @param files List of files to read from (sample per line).
+	 * @return Data source backed by the files.
+	 */
+	public static FileDataSource load(int skip, File... files) {
+		FileDataSource result = new FileDataSource(files);
+		result.reload(skip);
 		return result;
 	}
 	
@@ -55,7 +67,19 @@ public class FileDataSource implements DataSource {
 	 */
 	public static FileDataSource load(Collection<File> files) {
 		FileDataSource result = new FileDataSource(files.toArray(new File[0]));
-		result.reload();
+		result.reload(0);
+		return result;
+	}
+	
+	/** Create a data source from given files.
+	 * 
+	 * @param skip Skip this number of samples from the beginning of each file.
+	 * @param files List of files to read from (sample per line).
+	 * @return Data source backed by the files.
+	 */
+	public static DataSource load(int skip, Collection<File> files) {
+		FileDataSource result = new FileDataSource(files.toArray(new File[0]));
+		result.reload(skip);
 		return result;
 	}
 	
@@ -78,12 +102,15 @@ public class FileDataSource implements DataSource {
 		previousEpoch = data;
 	}
 	
-	/** Reload the values from the same files. */
-	public void reload() {
+	/** Reload the values from the same files.
+	 * 
+	 * @param skip Skip this number of samples from the beginning of each file.
+	 */
+	public void reload(int skip) {
 		initBuilder();
 		for (File file : files) {
 			try {
-				BenchmarkRun run = BenchmarkRunReader.fromLineOriented(new FileInputStream(file));
+				BenchmarkRun run = BenchmarkRunReader.fromLineOriented(skip, new FileInputStream(file));
 				snapshotBuilder.addRun(run);
 			} catch (FileNotFoundException e) {
 			} catch (IOException e) {

@@ -57,6 +57,21 @@ public class BenchmarkRunReader {
 	 * @throws IOException 
 	 */
 	public static BenchmarkRun fromLineOriented(InputStream is) throws IOException {
+		return fromLineOriented(0, is);
+	}
+	
+	/** Reads samples from a data stream.
+	 * 
+	 * <p>
+	 * Expects each sample is on a separate line, silently ignores
+	 * lines containing something else than positive integer.
+	 * 
+	 * @param skip Skip this number of samples from the beginning.
+	 * @param is Input stream with data.
+	 * @return Benchmark run with the samples.
+	 * @throws IOException 
+	 */
+	public static BenchmarkRun fromLineOriented(int skip, InputStream is) throws IOException {
 		BenchmarkRunBuilder run = new BenchmarkRunBuilder();
 		
 		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
@@ -74,7 +89,11 @@ public class BenchmarkRunReader {
 				continue;
 			}
 			
-			run.addSamples(value);
+			if (skip <= 0) {
+				run.addSamples(value);
+			} else {
+				skip--;
+			}
 		}
 		
 		return run.create();
