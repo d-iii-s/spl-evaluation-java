@@ -340,6 +340,7 @@ public class SensitivityComparison {
 		boolean verbose = false;
 		boolean demo = false;
 		boolean learningTestBeFast = false;
+		int skip = 0;
 		
 		/* Process command-line options.
 		 * Notice: we are incrementing the counter from inside the
@@ -355,6 +356,7 @@ public class SensitivityComparison {
 				System.out.println(" --jobs N      Number of parallel jobs (defaults to CPU*2)");
 				System.out.println(" --jobs xN     Number of parallel jobs (multiply of CPU count)");
 				System.out.println(" --alpha A     Significance level [mult].");
+				System.out.println(" --skip N      Skip first N samples from each file.");
 				System.out.println(" --tolerancy X Extra tolerancy for the tests [mult].");
 				System.out.println(" --fast        Use faster (but less precise) implementation.");
 				System.out.println(" --demo        Run on prepackaged data only.");
@@ -373,6 +375,9 @@ public class SensitivityComparison {
 				i++;
 			} else if (args[i].equals("--repeats")) {
 				repeats = Integer.parseInt(args[i+1]);
+				i++;
+			} else if (args[i].equals("--skip")) {
+				skip = Integer.parseInt(args[i+1]);
 				i++;
 			} else if (args[i].equals("--jobs")) {
 				if (args[i+1].startsWith("x")) {
@@ -469,7 +474,7 @@ public class SensitivityComparison {
 					files.add(new File(filename));
 				} else {
 					if (leftSource == null) {
-						leftSource = FileDataSource.load(files);
+						leftSource = FileDataSource.load(skip, files);
 						cmpOp = op;
 					} else {
 						System.err.printf("%s: too many operators on line %s.\n", filename, line);
@@ -485,7 +490,7 @@ public class SensitivityComparison {
 				System.err.printf("Operator missing on line %s.\n", line);
 				continue;
 			}
-			rightSource = FileDataSource.load(files);
+			rightSource = FileDataSource.load(skip, files);
 			
 			DataSnapshot left = leftSource.makeSnapshot();
 			DataSnapshot right = rightSource.makeSnapshot();
