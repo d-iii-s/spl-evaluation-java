@@ -99,16 +99,16 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 		DataSnapshot[] learningSets = getLearningSets(left, right);
 		
 		@SuppressWarnings("unchecked")
-		Future<double[]>[] samplesFromEmpiricalDistribution = (Future<double[]>[]) new Future<?>[2];
+		Future<double[]>[] samplesBeforeDiff = (Future<double[]>[]) new Future<?>[2];
 		
 		for (int i = 0; i < 2; i++) {
 			Future<Double> mean = executor.submit(new MeanComputation(learningSets[i]));
 			Future<double[]> samples = executor.submit(new DoubleBootstrap(learningSets[i], bootstrapSizeInnerMeans, bootstrapSizeOuterMeans, executor));
 			Future<double[]> samplesNormalized = executor.submit(new SubtractFromArray(samples, mean));
-			samplesFromEmpiricalDistribution[i] = executor.submit(new SamplesOfEmpiricalDistribution(samplesNormalized, diffDistributionSampleCount));
+			samplesBeforeDiff[i] = executor.submit(new Bootstrap(samplesNormalized, diffDistributionSampleCount));
 		}
 		
-		Future<double[]> diffSamplesFuture = executor.submit(new ArrayDiff(samplesFromEmpiricalDistribution[0], samplesFromEmpiricalDistribution[1]));
+		Future<double[]> diffSamplesFuture = executor.submit(new ArrayDiff(samplesBeforeDiff[0], samplesBeforeDiff[1]));
 		
 		double statistic = leftMean.get() - rightMean.get();
 		
@@ -258,11 +258,11 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 		}
 	}
 	
-	private static class SamplesOfEmpiricalDistribution implements Callable<double[]> {
+	private static class Bootstrap implements Callable<double[]> {
 		private final Future<double[]> samplesFuture;
 		private final int count;
 		
-		public SamplesOfEmpiricalDistribution(Future<double[]> samples, int samplesCount) {
+		public Bootstrap(Future<double[]> samples, int samplesCount) {
 			samplesFuture = samples;
 			count = samplesCount;
 		}
