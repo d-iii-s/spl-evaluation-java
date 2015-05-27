@@ -573,7 +573,7 @@ public class SensitivityComparison {
 			System.out.printf("# Took %ds for %d jobs (about %dms per job).\n", timeDiffSec, jobs.size(), timeDiffMillisPerJob);
 		}
 		
-		System.out.printf("%-30s", "");
+		System.out.printf("%-55s", "");
 		for (StatisticalTest test : tests) {
 			for (double alpha : alphasCol) {
 				String name = test.getName(alpha);
@@ -584,7 +584,7 @@ public class SensitivityComparison {
 		
 		for (SimpleComparison comparison : comparisons) {
 			for (int[] subset : subsets) {
-				System.out.printf("%-30s", String.format("%s %2d:%2d [%2d:%2d]", comparison.name, subset[0], subset[2], subset[1], subset[3]));
+				System.out.printf("%-55s", String.format("%s %2d:%2d [%2d:%2d]", comparison.name, subset[0], subset[2], subset[1], subset[3]));
 				for (StatisticalTest test : tests) {
 					for (double alpha : alphasCol) {
 						String name = String.format("%s.%d.%d.%d.%d", test.getName(alpha), subset[0], subset[1], subset[2], subset[3]);
