@@ -360,6 +360,9 @@ public class SensitivityComparison {
 				System.out.println(" --tolerancy X Extra tolerancy for the tests [mult].");
 				System.out.println(" --fast        Use faster (but less precise) implementation.");
 				System.out.println(" --demo        Run on prepackaged data only.");
+				System.out.println("When --demo is not specified, reads formula specifications from stdin.");
+				System.out.println("Each line has format 'name ### files.left = files.right'.");
+				System.out.println("(No expansion of wildcards is done.)");
 				System.exit(0);
 			} else if (args[i].equals("--subset")) {
 				String[] sizesStr = args[i+1].split(":");
