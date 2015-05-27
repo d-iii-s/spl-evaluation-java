@@ -173,6 +173,15 @@
 				<pathelement path="${demo.classes.build.dir}" />
 				<pathelement path="${commons.math.jar.path}" />
 			</classpath>
+			<arg value="--verbose" />
+			<arg value="--fast" />
+			<arg value="--demo" />
+			<arg value="--repeats" />
+			<arg value="10" />
+			<arg value="--subset" />
+			<arg value="5:1:5:1" />
+			<arg value="--subset" />
+			<arg value="20:1:20:1" />
 		</java>
 	</target>
 		
