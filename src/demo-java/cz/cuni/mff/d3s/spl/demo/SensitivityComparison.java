@@ -342,24 +342,21 @@ public class SensitivityComparison {
 		boolean learningTestBeFast = false;
 		int skip = 0;
 		
-		/* Process command-line options.
-		 * Notice: we are incrementing the counter from inside the
-		 * loop as well.
-		 */
-		for (int i = 0; i <args.length; i++) {
+		// Process command line arguments.
+		for (int i = 0 ; i < args.length ; i ++) {
 			if (args[i].equals("--help")) {
 				System.out.printf("Usage: java -cp ... %s [opts]\n", SensitivityComparison.class.getName());
 				System.out.println("where [opts] is a combination of ([mult] .. option can be repeated):");
-				System.out.println(" --help        Print this help.");
-				System.out.println(" --verbose     Print what the program does (incl. progressbar).");
-				System.out.println(" --repeats N   Number of loops for each test.");
-				System.out.println(" --jobs N      Number of parallel jobs (defaults to CPU*2)");
-				System.out.println(" --jobs xN     Number of parallel jobs (multiply of CPU count)");
-				System.out.println(" --alpha A     Significance level [mult].");
-				System.out.println(" --skip N      Skip first N samples from each file.");
-				System.out.println(" --tolerancy X Extra tolerancy for the tests [mult].");
-				System.out.println(" --fast        Use faster (but less precise) implementation.");
-				System.out.println(" --demo        Run on prepackaged data only.");
+				System.out.println(" --help         Print this help.");
+				System.out.println(" --verbose      Print what the program does (including progress bar).");
+				System.out.println(" --repeats N    Number of loops for each test.");
+				System.out.println(" --jobs N       Number of parallel jobs (defaults to CPU*2)");
+				System.out.println(" --jobs xN      Number of parallel jobs (multiply of CPU count)");
+				System.out.println(" --alpha A      Significance level [mult].");
+				System.out.println(" --skip N       Skip first N samples from each file.");
+				System.out.println(" --tolerance X  Extra tolerance for the tests [mult].");
+				System.out.println(" --fast         Use faster (but less precise) implementation.");
+				System.out.println(" --demo         Run on prepackaged data only.");
 				System.out.println("When --demo is not specified, reads formula specifications from stdin.");
 				System.out.println("Each line has format 'name ### files.left = files.right'.");
 				System.out.println("(No expansion of wildcards is done.)");
@@ -367,7 +364,7 @@ public class SensitivityComparison {
 			} else if (args[i].equals("--subset")) {
 				String[] sizesStr = args[i+1].split(":");
 				if (sizesStr.length != 4) {
-					System.err.println("--subset expects 4 ints, colon separated");
+					System.err.println("--subset expects 4 integers, colon separated");
 					System.exit(1);
 				}
 				int[] sizes = new int[4];
@@ -393,7 +390,7 @@ public class SensitivityComparison {
 				double alpha = Double.parseDouble(args[i+1]);
 				alphasCol.add(alpha);
 				i++;
-			} else if (args[i].equals("--tolerancy")) {
+			} else if (args[i].equals("--tolerance")) {
 				double tol = Double.parseDouble(args[i+1]);
 				tolerancies.add(tol);
 				i++;
@@ -410,24 +407,15 @@ public class SensitivityComparison {
 		}
 		
 		
-		/* Set-up the defaults. */
-		if (alphasCol.isEmpty()) {
-			alphasCol.add(0.05);
-		}
-		if (subsets.isEmpty()) {
-			subsets.add(new int[] {10, 1, 10, 1});
-		}
+		// Set up the defaults.
+		if (alphasCol.isEmpty()) alphasCol.add(0.05);
+		if (subsets.isEmpty()) subsets.add(new int[] {10, 1, 10, 1});
 		
-		
-		/*
-		 * Set-up the executors.
-		 */
+		// Set up the executors.
 		ExecutorService testInternalExecutor = Executors.newCachedThreadPool();
 		ExecutorService mainExecutor = Executors.newFixedThreadPool(parallelJobs);
 		
-		/*
-		 * Prepare the tests that will be run.
-		 */
+		// Prepare the tests that will be run.
 		Collection<StatisticalTest> tests = new ArrayList<>();
 		tests.add(new TTest());
 		tests.add(new LearningTest(testInternalExecutor, learningTestBeFast));
@@ -436,9 +424,7 @@ public class SensitivityComparison {
 			tests.add(new TolerantTest(new LearningTest(testInternalExecutor, learningTestBeFast), tol));
 		};		
 		
-		/*
-		 * Read the comparisons on which we ought to test.
-		 */
+		// Read the comparisons on which we ought to test.
 		Reader input = null;
 		if (demo) {
 			input = new StringReader(
@@ -454,46 +440,44 @@ public class SensitivityComparison {
 		BufferedReader bufferedInput = new BufferedReader(input);
 		while (true) {
 			String line = bufferedInput.readLine();
-			if (line == null) {
-				break;
-			}
+			if (line == null) break;
 			
-			String[] parts = line.split("###");
+			String[] parts = line.split("[ \t]*###[ \t]*");
 			if (parts.length != 2) {
 				System.err.printf("Ignoring line %s.\n", line);
 				continue;
 			}
-			String[] filenames = parts[1].split("[ \t]");
+			String[] filenames = parts[1].split("[ \t]+");
 			
+			Collection<File> leftFiles = new ArrayList<>();
+			Collection<File> rightFiles = new ArrayList<>();
 			DataSource leftSource = null;
 			DataSource rightSource = null;
 			ComparisonOperator cmpOp = null;
-			
-			Collection<File> files = new ArrayList<>();
-			boolean err = false;
+			int cmpOpCount = 0;
+
+			// Scan the list of files.
+			// Files left of operator form the left source.
+			// Files right of operator form the right source.
+			System.err.printf ("%d filenames\n", filenames.length);
 			for (String filename : filenames) {
-				ComparisonOperator op = ComparisonOperator.fromString(filename);
-				if (op == ComparisonOperator.ERR) {
-					files.add(new File(filename));
-				} else {
-					if (leftSource == null) {
-						leftSource = FileDataSource.load(skip, files);
-						cmpOp = op;
-					} else {
-						System.err.printf("%s: too many operators on line %s.\n", filename, line);
-						err = true;
-						break;
-					}
-				}
+			    ComparisonOperator op = ComparisonOperator.fromString(filename);
+			    if (op == ComparisonOperator.ERR) {
+				if (cmpOp == null) leftFiles.add(new File(filename));
+				else rightFiles.add(new File(filename));
+			    } else {
+				cmpOp = op;
+				cmpOpCount ++;
+			    }
 			}
-			if (err) {
-				continue;
+			// There should be exactly one operator.
+			if (cmpOpCount != 1) {
+			    System.err.printf("%d operators on line %s.\n", cmpOpCount, line);
+			    continue;
 			}
-			if (cmpOp == null) {
-				System.err.printf("Operator missing on line %s.\n", line);
-				continue;
-			}
-			rightSource = FileDataSource.load(skip, files);
+
+			leftSource = FileDataSource.load (skip, leftFiles);
+			rightSource = FileDataSource.load(skip, rightFiles);
 			
 			DataSnapshot left = leftSource.makeSnapshot();
 			DataSnapshot right = rightSource.makeSnapshot();
