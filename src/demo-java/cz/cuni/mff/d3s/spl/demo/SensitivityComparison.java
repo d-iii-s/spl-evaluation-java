@@ -63,19 +63,29 @@ public class SensitivityComparison {
 	}
 
 	private static interface StatisticalTest {
+	    
+		/** Return test result for multiple confidence levels at the same time.
+		 * 
+		 * Given two data snapshots, a comparison operator and a list of confidence values,
+		 * the method tells which of the confidence levels would require rejecting the comparison.
+		 * 
+		 * @param left Left data snapshot.
+		 * @param op Comparison operator.
+		 * @param right Right data snapshot.
+		 * @param alphas Confidence levels to consider.
+		 * @return Boolean array, a position is true if the test would reject at the corresponding confidence level.
+		 */
 		public boolean[] getRejects(DataSnapshot left, ComparisonOperator op,
 				DataSnapshot right, double[] alphas);
 
 		public String getName(double alpha);
 	}
 
-	private static abstract class GenericStatisticalTest implements
-			StatisticalTest {
+	private static abstract class GenericStatisticalTest implements	StatisticalTest {
 		protected Interpretation interpretation;
 
 		@Override
-		public boolean[] getRejects(DataSnapshot left, ComparisonOperator op,
-				DataSnapshot right, double[] alphas) {
+		public boolean[] getRejects(DataSnapshot left, ComparisonOperator op, DataSnapshot right, double[] alphas) {
 
 			ComparisonResult result = interpretation.compare(left, right);
 			double t = result.getStatistic();
@@ -201,6 +211,14 @@ public class SensitivityComparison {
 			results = new HashMap<>();
 		}
 
+		/** Accumulate test result statistics.
+		 * 
+		 * Each test execution (test name, current subset sizes, history subset sizes) delivers a single boolean result.
+		 * The results are aggregated for all executions of the same test.
+		 *  
+		 * @param setting Unique identification of the test including test settings.
+		 * @param rejected Boolean test result to record.
+		 */
 		public void addResult(String setting, boolean rejected) {
 			int index = rejected ? 1 : 0;
 			synchronized (results) {
@@ -232,6 +250,12 @@ public class SensitivityComparison {
 		}
 	}
 
+	/** Runnable for single test execution.
+	 *
+	 * Given a comparison object (which includes the data snapshots and the comparison operator),
+	 * the test to use and the subset sizes to use, the runnable executes a single test
+	 * and records the results in the comparison object.
+	 */
 	private static class Evaluator implements Runnable {
 		private final SimpleComparison comparison;
 		private final StatisticalTest test;
@@ -253,11 +277,13 @@ public class SensitivityComparison {
 
 		@Override
 		public void run() {
+		    	// Generate random subsets of both current and historical data to use for comparison.
 			DataSnapshot left = getSubset(comparison.left, leftSubsetSize, getSubset(comparison.left, leftLearnSubsetSize, null));
 			DataSnapshot right = getSubset(comparison.right, rightSubsetSize, getSubset(comparison.right, rightLearnSubsetSize, null));
 
-			boolean[] result = test.getRejects(left, comparison.op, right,
-					alphas);
+			// Get a list of results for a range of confidence levels.
+			// Accumulate the results in the associated comparison object.
+			boolean[] result = test.getRejects(left, comparison.op, right, alphas);
 			for (int i = 0; i < result.length; i++) {
 				String name = test.getName(alphas[i]);
 				String resultId = String.format("%s.%d.%d.%d.%d", name, leftLearnSubsetSize, leftSubsetSize, rightLearnSubsetSize, rightSubsetSize);
@@ -265,6 +291,13 @@ public class SensitivityComparison {
 			}
 		}
 
+		/** Create a data snapshot from a random subset of runs of another data snapshot.
+		 * 
+		 * @param data Source data snapshot.
+		 * @param size How many runs to use.
+		 * @param prev Historical data snapshot to use.
+		 * @return New data snapshot that is a subset of the source.
+		 */
 		private DataSnapshot getSubset(DataSnapshot data, int size, DataSnapshot prev) {
 			DataSnapshotBuilder builder = new DataSnapshotBuilder();
 			int[] indexes = getRandomIndexes(data.getRunCount(), size);
@@ -275,6 +308,14 @@ public class SensitivityComparison {
 			return builder.create();
 		}
 
+		/** Return an array of random indexes from given range without replacement.
+		 * 
+		 * Because sampling is without replacement we expect wantedSize <= origSize.
+		 * 
+		 * @param origSize Only indexes smaller than this are available.
+		 * @param wantedSize How many indexes to select.
+		 * @return Unique random indexes from given range.
+		 */
 		private int[] getRandomIndexes(int origSize, int wantedSize) {
 			if (wantedSize > origSize) {
 				wantedSize = origSize;

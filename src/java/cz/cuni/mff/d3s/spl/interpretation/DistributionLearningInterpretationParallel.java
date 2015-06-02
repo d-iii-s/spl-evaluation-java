@@ -37,7 +37,7 @@ import cz.cuni.mff.d3s.spl.utils.DistributionUtils;
 import cz.cuni.mff.d3s.spl.utils.StatisticsUtils;
 
 
-/** Parallel interpretation of the DistributionLearningInterpretation.
+/** Parallel implementation of the DistributionLearningInterpretation.
  * 
  * <b>Warning</b>: current implementation requires at least 4 worker threads
  * to be available due to parallelism nesting.
