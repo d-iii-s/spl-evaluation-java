@@ -234,28 +234,19 @@ public class SensitivityComparison {
 		public String getResult(String setting) {
 			int[] answer = null;
 			synchronized (results) {
-				answer = results.get(setting);
-				if (answer != null) {
-					answer = Arrays.copyOf(answer, answer.length);
-				}
+				answer = results.get (setting);
+				if (answer != null) answer = Arrays.copyOf(answer, answer.length);
 			}
-			if (answer == null) {
-				return "???";
-			}
+			
+			if (answer == null) return "???";
+			
 			double percent = (double) answer[1] / (answer[0] + answer[1]);
-			String result = String.format("%d,%d", answer[0], answer[1]);
-			result = String.format("%6.4f", percent, answer[0], answer[1]);
+			String result = String.format("%6.4f (%8d:%8d)", percent, answer[0], answer[1]);
 			
 			return result;
 		}
 	}
 
-	/** Runnable for single test execution.
-	 *
-	 * Given a comparison object (which includes the data snapshots and the comparison operator),
-	 * the test to use and the subset sizes to use, the runnable executes a single test
-	 * and records the results in the comparison object.
-	 */
 	private static class Evaluator implements Runnable {
 		private final SimpleComparison comparison;
 		private final StatisticalTest test;
@@ -265,6 +256,20 @@ public class SensitivityComparison {
 		private final int rightLearnSubsetSize;
 		private final int rightSubsetSize;
 
+		/** Runnable for single test execution.
+		 *
+		 * Given a comparison object (which includes the data snapshots and the comparison operator),
+		 * the test to use and the subset sizes to use, the runnable executes a single test
+		 * and records the results in the comparison object.
+		 * 
+		 * @param cmp Comparison object that provides comparison data and comparison operator and aggregates results.
+		 * @param leftLearnSize How many runs to use as historical data on left side.
+		 * @param leftSize How many runs to use as current data on left side.
+		 * @param rightLearnSize How many runs to use as historical data on right side.
+		 * @param rightSize How many runs to use as current data on right side.
+		 * @param t What test to use.
+		 * @param alfas What confidence levels to use.
+		 */
 		public Evaluator(SimpleComparison cmp, int leftLearnSize, int leftSize, int rightLearnSize, int rightSize, StatisticalTest t, double[] alfas) {
 			comparison = cmp;
 			test = t;
@@ -388,16 +393,17 @@ public class SensitivityComparison {
 			if (args[i].equals("--help")) {
 				System.out.printf("Usage: java -cp ... %s [opts]\n", SensitivityComparison.class.getName());
 				System.out.println("where [opts] is a combination of ([mult] .. option can be repeated):");
-				System.out.println(" --help         Print this help.");
-				System.out.println(" --verbose      Print what the program does (including progress bar).");
-				System.out.println(" --repeats N    Number of loops for each test.");
-				System.out.println(" --jobs N       Number of parallel jobs (defaults to CPU*2)");
-				System.out.println(" --jobs xN      Number of parallel jobs (multiply of CPU count)");
-				System.out.println(" --alpha A      Significance level [mult].");
-				System.out.println(" --skip N       Skip first N samples from each file.");
-				System.out.println(" --tolerance X  Extra tolerance for the tests [mult].");
-				System.out.println(" --fast         Use faster (but less precise) implementation.");
-				System.out.println(" --demo         Run on prepackaged data only.");
+				System.out.println(" --help                Print this help.");
+				System.out.println(" --verbose             Print what the program does (including progress bar).");
+				System.out.println(" --subset HL:CL:HR:CR  Set historical and current run count on left and right side.");
+				System.out.println(" --repeats N           Number of loops for each test.");
+				System.out.println(" --jobs N              Number of parallel jobs (defaults to CPU*2)");
+				System.out.println(" --jobs xN             Number of parallel jobs (multiply of CPU count)");
+				System.out.println(" --alpha A             Significance level [mult].");
+				System.out.println(" --skip N              Skip first N samples from each file.");
+				System.out.println(" --tolerance X         Extra tolerance for the tests [mult].");
+				System.out.println(" --fast                Use faster (but less precise) implementation.");
+				System.out.println(" --demo                Run on prepackaged data only.");
 				System.out.println("When --demo is not specified, reads formula specifications from stdin.");
 				System.out.println("Each line has format 'name ### files.left = files.right'.");
 				System.out.println("(No expansion of wildcards is done.)");
@@ -500,7 +506,7 @@ public class SensitivityComparison {
 			// Scan the list of files.
 			// Files left of operator form the left source.
 			// Files right of operator form the right source.
-			System.err.printf ("%d filenames\n", filenames.length);
+			System.err.printf ("# Total %d filenames.\n", filenames.length);
 			for (String filename : filenames) {
 			    ComparisonOperator op = ComparisonOperator.fromString(filename);
 			    if (op == ComparisonOperator.ERR) {
@@ -513,7 +519,7 @@ public class SensitivityComparison {
 			}
 			// There should be exactly one operator.
 			if (cmpOpCount != 1) {
-			    System.err.printf("%d operators on line %s.\n", cmpOpCount, line);
+			    System.err.printf("There are %d operators on line %s.\n", cmpOpCount, line);
 			    continue;
 			}
 
@@ -524,7 +530,7 @@ public class SensitivityComparison {
 			DataSnapshot right = rightSource.makeSnapshot();
 			
 			if ((left.getRunCount() == 0) || (right.getRunCount() == 0)) {
-				System.err.printf("No sources on %s.\n", line);
+				System.err.printf("There are no sources on %s.\n", line);
 				continue;
 			}
 			
@@ -545,7 +551,7 @@ public class SensitivityComparison {
 			System.out.printf("# Expects %d jobs (%d * %d * %d * %d).\n",
 				comparisons.size() * tests.size() * repeats * subsets.size(),
 				comparisons.size(), tests.size(), subsets.size(), repeats);
-			System.out.printf("# Parallel jobs: %d\n", parallelJobs);
+			System.out.printf("# Using %d parallel jobs.\n", parallelJobs);
 		}
 		
 		long startTime = System.nanoTime();
@@ -605,7 +611,7 @@ public class SensitivityComparison {
 		for (StatisticalTest test : tests) {
 			for (double alpha : alphasCol) {
 				String name = test.getName(alpha);
-				System.out.printf("%15s", name);
+				System.out.printf("%30s", name);
 			}
 		}
 		System.out.println();
@@ -616,7 +622,7 @@ public class SensitivityComparison {
 				for (StatisticalTest test : tests) {
 					for (double alpha : alphasCol) {
 						String name = String.format("%s.%d.%d.%d.%d", test.getName(alpha), subset[0], subset[1], subset[2], subset[3]);
-						System.out.printf("%15s", comparison.getResult(name));
+						System.out.printf("%30s", comparison.getResult(name));
 					}
 				}
 				System.out.println();
