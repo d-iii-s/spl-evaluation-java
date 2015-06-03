@@ -96,38 +96,55 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 	}
 	
 	private ComparisonResult compareThrowing(DataSnapshot left, DataSnapshot right) throws InterruptedException, ExecutionException {
-	    	// Launch the computation of means whose difference will eventually be tested.
-	    	// TODO Assumes runs have equal number of samples ?
-		Future<Double> leftMean = executor.submit(new MeanComputation(left));
-		Future<Double> rightMean = executor.submit(new MeanComputation(right));
-		
-		DataSnapshot[] learningSets = getLearningSets(left, right);
-		
-		@SuppressWarnings("unchecked")
-		Future<double[]>[] samplesBeforeDiff = (Future<double[]>[]) new Future<?>[2];
+	    	// Pack data into arrays because some parts of the computation can then be easily repeated.
+	    	DataSnapshot[] dataSnapshots = new DataSnapshot [2];
+	    	dataSnapshots[0] = left;
+	    	dataSnapshots[1] = right;
 
-		// Compute the mean used to normalize the learning sets.
-		// TODO These should be two means, one for each set (except for corner cases with few runs) ?
-		Future<Double> learningMean = executor.submit(new MeanComputation(learningSets[0], learningSets[1]));
+		DataSnapshot[] learningSets = getLearningSets(dataSnapshots [0], dataSnapshots [1]);
 		
-		for (int i = 0; i < 2; i++) {
-			Future<double[][]> allSamples = executor.submit(new RunsToDoubleArrays(learningSets[i]));
-			Future<double[][]> samplesShifted = executor.submit(new SubtractFrom2DArray(allSamples, learningMean));
-			// TODO Sequence length for bootstrap on historical data should be directed by length of current data ?
-			Future<double[]> boostrapped = executor.submit(new DoubleBootstrap(samplesShifted, bootstrapSizeInnerMeans, bootstrapSizeOuterMeans, executor));
-			// TODO Is the bootstrap of bootstrapped grand means necessary ?
-			samplesBeforeDiff[i] = executor.submit(new Bootstrap(boostrapped, diffDistributionSampleCount));
+	    	// Now just do some parts of the processing twice.
+
+		@SuppressWarnings("unchecked")
+		Future<Double>[] currentMeans = (Future<Double>[]) new Future<?>[2];
+
+		@SuppressWarnings("unchecked")
+		Future<Double>[] historicalMeans = (Future<Double>[]) new Future<?>[2];
+
+		@SuppressWarnings("unchecked")
+		Future<double[]>[] normalizedMeanSamples = (Future<double[]>[]) new Future<?>[2];
+
+		for (int i = 0 ; i < 2 ; i ++) {
+		    	// Compute the mean of the current runs.
+		    	currentMeans[i] = executor.submit(new MeanComputation(dataSnapshots[i]));
+		
+		    	// Compute the mean used to normalize the historical runs.
+		    	historicalMeans[i] = executor.submit(new MeanComputation(learningSets[i]));
+
+		    	// Bootstrap means of means of samples of the normalized historical runs.
+			Future<double[][]> allSamplesOriginal = executor.submit(new RunsToDoubleArrays(learningSets[i]));
+			Future<double[][]> allSamplesShifted = executor.submit(new SubtractFrom2DArray(allSamplesOriginal, historicalMeans[i]));
+			Future<double[]> boostrapped = executor.submit(
+				new DoubleBootstrap(
+					allSamplesShifted, 
+					bootstrapSizeInnerMeans, 
+					bootstrapSizeOuterMeans, 
+					dataSnapshots[i].getRunCount (), 
+					executor));
+			
+			// Abuse bootstrap to do Monte Carlo of differences of means of means of samples later.
+			normalizedMeanSamples[i] = executor.submit(new Bootstrap(boostrapped, diffDistributionSampleCount));
 		}
 		
-		Future<double[]> diffSamplesFuture = executor.submit(new ArrayDiff(samplesBeforeDiff[0], samplesBeforeDiff[1]));
+		// Compute the difference of means of means of samples.
+		Future<double[]> normalizedMeanDifferencesFuture = executor.submit(new ArrayDiff(normalizedMeanSamples[0], normalizedMeanSamples[1]));
+
+		// Use the distribution of the differences in historical means to classify the difference in current means. 
+		double currentMeanDifference = currentMeans[0].get() - currentMeans[1].get();
+		double[] normalizedMeanDifferences = normalizedMeanDifferencesFuture.get();
+		RealDistribution normalizedMeanDifferenceDistribution = DistributionUtils.makeEmpirical(normalizedMeanDifferences);
 		
-		double statistic = leftMean.get() - rightMean.get();
-		
-		double[] diffSamples = diffSamplesFuture.get();
-		
-		RealDistribution diffDistr = DistributionUtils.makeEmpirical(diffSamples);
-		
-		return new DistributionBasedComparisonResult(statistic, diffDistr);
+		return new DistributionBasedComparisonResult(currentMeanDifference, normalizedMeanDifferenceDistribution);
 	}
 	
 	/** {@inheritDoc} */
@@ -186,7 +203,7 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 	 * @param result Array of results to append to.
 	 * @param resultStartIndex Starting position in results.
 	 */
-	private static void bootstrapWithMean(Random rnd, double[] data, int bootstrapLength, int count, double[] result, int resultStartIndex) {
+	private static void bootstrapMeans(Random rnd, double[] data, int bootstrapLength, int count, double[] result, int resultStartIndex) {
 		double[] tmp = new double[bootstrapLength];
 		
 		for (int i = 0; i < count; i++) {
@@ -255,23 +272,22 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 		private final Future<double[][]> dataFuture;
 		private final int bootstrapSizeInnerMeans;
 		private final int bootstrapSizeOuterMeans;
+		private final int grandMeanRunCount;
 		private final Random bootstrapRandom = new Random();
 		
 		/** Compute bootstrap grand means from data.
 		 * 
-		 * Both bootstrap levels use the same sequence length as the data length.
-		 * For means, this is the count of samples in run.
-		 * For grand means, this is the count of runs. 
-		 * 
 		 * @param dataFuture Data to use for computation.
 		 * @param innerSize How many bootstrap means to compute from each run.
 		 * @param outerSize How many bootstrap grand means to compute from the bootstrap means.
+		 * @param runCount How many runs to use in each grand mean.
 		 * @param exec The executor service to use.
 		 */
-		public DoubleBootstrap(Future<double[][]> dataFuture, int innerSize, int outerSize, ExecutorService exec) {
+		public DoubleBootstrap(Future<double[][]> dataFuture, int innerSize, int outerSize, int runCount, ExecutorService exec) {
 			this.dataFuture = dataFuture;
 			bootstrapSizeInnerMeans = innerSize;
 			bootstrapSizeOuterMeans = outerSize;
+			grandMeanRunCount = runCount;
 			executor = exec;
 		}
 		
@@ -282,14 +298,12 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 			
 			double[] runMeans = new double[runCount * bootstrapSizeInnerMeans];
 			ArrayList<Callable<Void>> tasks = new ArrayList<>(runCount);
-			for (int i = 0; i < runCount; i++) {
-				tasks.add(new MeanBootstrap(data[i], runMeans, i * bootstrapSizeInnerMeans, bootstrapSizeInnerMeans));
-			}
+			for (int i = 0; i < runCount; i++) tasks.add(new MeanBootstrap(data[i], runMeans, i * bootstrapSizeInnerMeans, bootstrapSizeInnerMeans));
 			
 			executor.invokeAll(tasks);
 				
 			double[] finalSamples = new double[bootstrapSizeOuterMeans];
-			bootstrapWithMean(bootstrapRandom, runMeans, runCount, bootstrapSizeOuterMeans, finalSamples, 0);
+			bootstrapMeans(bootstrapRandom, runMeans, grandMeanRunCount, bootstrapSizeOuterMeans, finalSamples, 0);
 			
 			return finalSamples;
 		}
@@ -317,7 +331,7 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 		
 		@Override
 		public Void call() throws Exception {
-			bootstrapWithMean(new Random(0), myRun, myRun.length, myLength, fullArray, myStartIndex);
+			bootstrapMeans(new Random(0), myRun, myRun.length, myLength, fullArray, myStartIndex);
 			return null;
 		}
 	}
