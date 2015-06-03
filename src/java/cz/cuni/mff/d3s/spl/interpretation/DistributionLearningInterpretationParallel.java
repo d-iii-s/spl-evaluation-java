@@ -115,7 +115,7 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 			Future<double[][]> samplesShifted = executor.submit(new SubtractFrom2DArray(allSamples, learningMean));
 			// TODO Sequence length for bootstrap on historical data should be directed by length of current data ?
 			Future<double[]> boostrapped = executor.submit(new DoubleBootstrap(samplesShifted, bootstrapSizeInnerMeans, bootstrapSizeOuterMeans, executor));
-			// TODO Is the bootstrap of bootstrapped grand means necessary ? Perhaps it is because no bootstrap is done on mean difference ?
+			// TODO Is the bootstrap of bootstrapped grand means necessary ?
 			samplesBeforeDiff[i] = executor.submit(new Bootstrap(boostrapped, diffDistributionSampleCount));
 		}
 		
