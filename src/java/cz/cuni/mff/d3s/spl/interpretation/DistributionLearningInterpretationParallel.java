@@ -96,6 +96,8 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 	}
 	
 	private ComparisonResult compareThrowing(DataSnapshot left, DataSnapshot right) throws InterruptedException, ExecutionException {
+	    	// Launch the computation of means whose difference will eventually be tested.
+	    	// TODO Assumes runs have equal number of samples ?
 		Future<Double> leftMean = executor.submit(new MeanComputation(left));
 		Future<Double> rightMean = executor.submit(new MeanComputation(right));
 		
@@ -103,12 +105,17 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 		
 		@SuppressWarnings("unchecked")
 		Future<double[]>[] samplesBeforeDiff = (Future<double[]>[]) new Future<?>[2];
-		
+
+		// Compute the mean used to normalize the learning sets.
+		// TODO These should be two means, one for each set (except for corner cases with few runs) ?
 		Future<Double> learningMean = executor.submit(new MeanComputation(learningSets[0], learningSets[1]));
+		
 		for (int i = 0; i < 2; i++) {
 			Future<double[][]> allSamples = executor.submit(new RunsToDoubleArrays(learningSets[i]));
 			Future<double[][]> samplesShifted = executor.submit(new SubtractFrom2DArray(allSamples, learningMean));
+			// TODO Sequence length for bootstrap on historical data should be directed by length of current data ?
 			Future<double[]> boostrapped = executor.submit(new DoubleBootstrap(samplesShifted, bootstrapSizeInnerMeans, bootstrapSizeOuterMeans, executor));
+			// TODO Is the bootstrap of bootstrapped grand means necessary ? Perhaps it is because no bootstrap is done on mean difference ?
 			samplesBeforeDiff[i] = executor.submit(new Bootstrap(boostrapped, diffDistributionSampleCount));
 		}
 		
@@ -129,6 +136,16 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 		throw new UnsupportedOperationException("This is not yet implemented.");
 	}
 	
+	/** Returns the data snapshots to use for learning the mean difference distribution.
+	 * In case one of the input data snapshots does not have a history,
+	 * the history of the other input data snapshot is used.
+	 * 
+	 * TODO Why is the case of data with no history supported at all ? Does it make sense ?
+	 * 
+	 * @param left Left data snapshot whose history to take.
+	 * @param right Right data snapshot whose history to take.
+	 * @return The pair of data snapshots with historical data to use.
+	 */
 	private DataSnapshot[] getLearningSets(DataSnapshot left, DataSnapshot right) {
 		DataSnapshot[] result = new DataSnapshot[2];
 		
@@ -160,6 +177,15 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 		}
 	}
 	
+	/** Append bootstrap samples of mean into result array.
+	 *  
+	 * @param rnd Random generator to use for bootstrap.
+	 * @param data Data to bootstrap from.
+	 * @param bootstrapLength How long sequences to bootstrap.
+	 * @param count How many mean samples to compute.
+	 * @param result Array of results to append to.
+	 * @param resultStartIndex Starting position in results.
+	 */
 	private static void bootstrapWithMean(Random rnd, double[] data, int bootstrapLength, int count, double[] result, int resultStartIndex) {
 		double[] tmp = new double[bootstrapLength];
 		
@@ -173,6 +199,13 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 	private static class MeanComputation implements Callable<Double> {
 		private final DataSnapshot[] data;
 		
+		/** Compute the mean of all samples given.
+        	 * 
+        	 * This is not a grand mean, all samples are simply thrown together for the mean computation. 
+        	 * The number of samples in a run and the number of runs in a data snapshot is not considered.
+        	 *  
+		 * @param d Data snapshots to compute the mean from.
+		 */
 		public MeanComputation(DataSnapshot... d) {
 			data = d;
 		}
@@ -194,6 +227,10 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 	private static class RunsToDoubleArrays implements Callable<double[][]> {
 		private final DataSnapshot data;
 		
+		/** Convert data snapshot into array of arrays of doubles, one double per sample, one array per run.
+		 * 
+	 	 * @param d Data snapshot to convert.
+		 */
 		public RunsToDoubleArrays(DataSnapshot d) {
 			data = d;			
 		}
@@ -220,6 +257,17 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 		private final int bootstrapSizeOuterMeans;
 		private final Random bootstrapRandom = new Random();
 		
+		/** Compute bootstrap grand means from data.
+		 * 
+		 * Both bootstrap levels use the same sequence length as the data length.
+		 * For means, this is the count of samples in run.
+		 * For grand means, this is the count of runs. 
+		 * 
+		 * @param dataFuture Data to use for computation.
+		 * @param innerSize How many bootstrap means to compute from each run.
+		 * @param outerSize How many bootstrap grand means to compute from the bootstrap means.
+		 * @param exec The executor service to use.
+		 */
 		public DoubleBootstrap(Future<double[][]> dataFuture, int innerSize, int outerSize, ExecutorService exec) {
 			this.dataFuture = dataFuture;
 			bootstrapSizeInnerMeans = innerSize;
@@ -253,6 +301,13 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 		private final int myLength;
 		private final double[] myRun;
 		
+		/** Append bootstrap samples of mean into result array.
+		 * 
+		 * @param run Data to bootstrap from, bootstrap uses same sequence length as data length.
+		 * @param array Where to store the results.
+		 * @param startIndex How many results to append.
+		 * @param length Where to start appending the results.
+		 */
 		public MeanBootstrap(double[] run, double[] array, int startIndex, int length) {
 			myRun = run;
 			fullArray = array;
@@ -271,6 +326,11 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 		private final Future<double[][]> arrayFuture;
 		private final Future<Double> constantFuture;
 		
+		/** Subtract a constant from all samples in an array of arrays of doubles.
+		 * 
+		 * @param arr Future array of arrays of doubles to subtract from.
+		 * @param c Future constant to subtract.
+		 */
 		public SubtractFrom2DArray(Future<double[][]> arr, Future<Double> c) {
 			arrayFuture = arr;
 			constantFuture = c;
@@ -295,6 +355,11 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 		private final Future<double[]> samplesFuture;
 		private final int count;
 		
+		/** Computes bootstrap of given sequence length.
+		 * 
+		 * @param samples Data to bootstrap.
+		 * @param samplesCount Sequence length to return.
+		 */
 		public Bootstrap(Future<double[]> samples, int samplesCount) {
 			samplesFuture = samples;
 			count = samplesCount;
@@ -313,6 +378,8 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 		private final Future<double[]> leftFuture;
 		private final Future<double[]> rightFuture;
 		
+		/** Compute item by item difference of two arrays.
+		 */
 		public ArrayDiff(Future<double[]> left, Future<double[]> right) {
 			leftFuture = left;
 			rightFuture = right;
