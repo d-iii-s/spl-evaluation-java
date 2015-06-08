@@ -359,7 +359,7 @@ public class SensitivityComparison {
 
 		public static void print() {
 			synchronized (jobsGuard) {
-				System.out.printf("\r# %d jobs done (%d planned so far).",
+				System.err.printf("\r# %d jobs done (%d planned so far).",
 						jobsDone, jobsTotal);
 			}
 		}
@@ -582,7 +582,7 @@ public class SensitivityComparison {
 			}
 			if (allDone) {
 				if (verbose) {
-					System.out.println();
+					System.err.println();
 				}
 				break;
 			}
