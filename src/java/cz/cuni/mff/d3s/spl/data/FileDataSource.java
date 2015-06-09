@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import cz.cuni.mff.d3s.spl.BenchmarkRun;
 import cz.cuni.mff.d3s.spl.DataSnapshot;
@@ -36,6 +38,15 @@ public class FileDataSource implements DataSource {
 	private DataSnapshotBuilder snapshotBuilder = null;
 	private DataSnapshot previousEpoch = null;
 	private List<File> files;
+
+	//
+	
+	@FunctionalInterface
+	private interface FunctionThatThrows<T, R, E extends Throwable> {
+	        R apply(T t) throws E;
+	}	
+
+	//
 	
 	/** Create a data source from given files.
 	 * 
@@ -43,9 +54,7 @@ public class FileDataSource implements DataSource {
 	 * @return Data source backed by the files.
 	 */
 	public static FileDataSource load(File... files) {
-		FileDataSource result = new FileDataSource(files);
-		result.reload(0);
-		return result;
+		return loadInner (files, x -> { });
 	}
 	
 	/** Create a data source from given files.
@@ -55,20 +64,7 @@ public class FileDataSource implements DataSource {
 	 * @return Data source backed by the files.
 	 */
 	public static FileDataSource load(int skip, File... files) {
-		FileDataSource result = new FileDataSource(files);
-		result.reload(skip);
-		return result;
-	}
-	
-	/** Create a data source from given files.
-	 * 
-	 * @param files List of files to read from (sample per line).
-	 * @return Data source backed by the files.
-	 */
-	public static FileDataSource load(Collection<File> files) {
-		FileDataSource result = new FileDataSource(files.toArray(new File[0]));
-		result.reload(0);
-		return result;
+	    	return loadInner (files, x -> x.reload (skip));
 	}
 	
 	/** Create a data source from given files.
@@ -77,11 +73,48 @@ public class FileDataSource implements DataSource {
 	 * @param files List of files to read from (sample per line).
 	 * @return Data source backed by the files.
 	 */
-	public static DataSource load(int skip, Collection<File> files) {
-		FileDataSource result = new FileDataSource(files.toArray(new File[0]));
-		result.reload(skip);
-		return result;
+	public static FileDataSource load(double skip, File... files) {
+	    	return loadInner (files, x -> x.reload (skip));
 	}
+	
+	//
+	
+	/** Create a data source from given files.
+	 * 
+	 * @param files List of files to read from (sample per line).
+	 * @return Data source backed by the files.
+	 */
+	public static FileDataSource load(Collection<File> files) {
+		return loadInner(files.toArray (new File[0]), x -> { });
+	}
+	
+	/** Create a data source from given files.
+	 * 
+	 * @param skip Skip this number of samples from the beginning of each file.
+	 * @param files List of files to read from (sample per line).
+	 * @return Data source backed by the files.
+	 */
+	public static FileDataSource load(int skip, Collection<File> files) {
+		return loadInner(files.toArray (new File[0]), x -> x.reload (skip));
+	}
+
+	/** Create a data source from given files.
+	 * 
+	 * @param skip Skip this number of samples from the beginning of each file.
+	 * @param files List of files to read from (sample per line).
+	 * @return Data source backed by the files.
+	 */
+	public static FileDataSource load(double skip, Collection<File> files) {
+		return loadInner(files.toArray (new File[0]), x -> x.reload (skip));
+	}
+
+	private static FileDataSource loadInner(File [] files, Consumer<FileDataSource> loader) {
+	    FileDataSource result = new FileDataSource (files);
+	    loader.accept (result);
+	    return result;
+	}
+	
+	//
 	
 	private FileDataSource(File... files) {
 		this.files = Arrays.asList(files);
@@ -101,22 +134,42 @@ public class FileDataSource implements DataSource {
 	public void setPreviousEpochData(DataSnapshot data) {
 		previousEpoch = data;
 	}
+
+	//
+	
+	/** Reload the values from the same files.
+	 */
+	public void reload() { reloadInner(x -> BenchmarkRunReader.fromLineOriented (x)); }
 	
 	/** Reload the values from the same files.
 	 * 
 	 * @param skip Skip this number of samples from the beginning of each file.
 	 */
-	public void reload(int skip) {
-		initBuilder();
-		for (File file : files) {
-			try {
-				BenchmarkRun run = BenchmarkRunReader.fromLineOriented(skip, new FileInputStream(file));
-				snapshotBuilder.addRun(run);
-			} catch (FileNotFoundException e) {
-			} catch (IOException e) {
-			}
-		}
+	public void reload(int skip) { reloadInner(x -> BenchmarkRunReader.fromLineOriented (x, skip)); }
+	
+	/** Reload the values from the same files.
+	 * 
+	 * @param skip Skip this percentage of samples from the beginning of each file.
+	 */
+	public void reload(double skip) { reloadInner(x -> BenchmarkRunReader.fromLineOriented (x, skip)); }
+
+	/** Reload the values from the same files.
+	 * 
+	 * @param reader Reader to use for the values.
+	 */
+	private void reloadInner(FunctionThatThrows<FileInputStream, BenchmarkRun, IOException> reader) {
+	    initBuilder ();
+	    for (File file : files) {
+	    	try {
+	    		BenchmarkRun run = reader.apply (new FileInputStream(file));
+	    		snapshotBuilder.addRun (run);
+	    	} catch (FileNotFoundException e) {
+	    	} catch (IOException e) {
+	    	}
+	    }
 	}
+	
+	//
 	
 	private void initBuilder() {
 		snapshotBuilder = new DataSnapshotBuilder();

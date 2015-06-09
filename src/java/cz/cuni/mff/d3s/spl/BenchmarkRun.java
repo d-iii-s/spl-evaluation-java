@@ -46,4 +46,3 @@ public interface BenchmarkRun {
 	 */
 	long getSample(int index);
 }
-

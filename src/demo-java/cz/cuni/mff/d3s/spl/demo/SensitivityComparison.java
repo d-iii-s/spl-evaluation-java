@@ -386,7 +386,7 @@ public class SensitivityComparison {
 		boolean verbose = false;
 		boolean demo = false;
 		boolean learningTestBeFast = false;
-		int skip = 0;
+		double skip = 0;
 		
 		// Process command line arguments.
 		for (int i = 0 ; i < args.length ; i ++) {
@@ -400,7 +400,7 @@ public class SensitivityComparison {
 				System.out.println(" --jobs N              Number of parallel jobs (defaults to CPU*2)");
 				System.out.println(" --jobs xN             Number of parallel jobs (multiply of CPU count)");
 				System.out.println(" --alpha A             Significance level [mult].");
-				System.out.println(" --skip N              Skip first N samples from each file.");
+				System.out.println(" --skip N              Skip first N percent of samples from each file.");
 				System.out.println(" --tolerance X         Extra tolerance for the tests [mult].");
 				System.out.println(" --fast                Use faster (but less precise) implementation.");
 				System.out.println(" --demo                Run on prepackaged data only.");
@@ -424,7 +424,11 @@ public class SensitivityComparison {
 				repeats = Integer.parseInt(args[i+1]);
 				i++;
 			} else if (args[i].equals("--skip")) {
-				skip = Integer.parseInt(args[i+1]);
+				skip = Double.parseDouble(args[i+1]);
+				if (skip < 0.0 || skip > 1.0) {
+				    	System.err.println("--skip expects double from 0 to 1");
+				    	System.exit(1);
+				}
 				i++;
 			} else if (args[i].equals("--jobs")) {
 				if (args[i+1].startsWith("x")) {
@@ -523,7 +527,7 @@ public class SensitivityComparison {
 			    continue;
 			}
 
-			leftSource = FileDataSource.load (skip, leftFiles);
+			leftSource = FileDataSource.load(skip, leftFiles);
 			rightSource = FileDataSource.load(skip, rightFiles);
 			
 			DataSnapshot left = leftSource.makeSnapshot();

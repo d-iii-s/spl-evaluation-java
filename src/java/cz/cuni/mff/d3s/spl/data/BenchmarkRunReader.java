@@ -57,47 +57,59 @@ public class BenchmarkRunReader {
 	 * @throws IOException 
 	 */
 	public static BenchmarkRun fromLineOriented(InputStream is) throws IOException {
-		return fromLineOriented(0, is);
+		BenchmarkRunBuilder run = fromLineOrientedInner(is);
+		return run.create();
 	}
 	
 	/** Reads samples from a data stream.
 	 * 
-	 * <p>
 	 * Expects each sample is on a separate line, silently ignores
 	 * lines containing something else than positive integer.
 	 * 
+	 * @param is Input stream with data.
 	 * @param skip Skip this number of samples from the beginning.
+	 * @return Benchmark run with the samples.
+	 * @throws IOException 
+	 */
+	public static BenchmarkRun fromLineOriented(InputStream is, int skip) throws IOException {
+		BenchmarkRunBuilder run = fromLineOrientedInner(is);
+		return run.create(skip);
+	}
+
+	/** Reads samples from a data stream.
+	 * 
+	 * Expects each sample is on a separate line, silently ignores
+	 * lines containing something else than positive integer.
+	 * 
+	 * @param is Input stream with data.
+	 * @param skip Skip this percentage of samples from the beginning.
+	 * @return Benchmark run with the samples.
+	 * @throws IOException 
+	 */
+	public static BenchmarkRun fromLineOriented(InputStream is, double skip) throws IOException {
+		BenchmarkRunBuilder run = fromLineOrientedInner(is);
+		return run.create(skip);
+	}
+
+	/** Reads samples from a data stream.
+	 * 
+	 * Expects each sample is on a separate line, silently ignores
+	 * lines containing something else than positive integer.
+	 * 
 	 * @param is Input stream with data.
 	 * @return Benchmark run with the samples.
 	 * @throws IOException 
 	 */
-	public static BenchmarkRun fromLineOriented(int skip, InputStream is) throws IOException {
-		BenchmarkRunBuilder run = new BenchmarkRunBuilder();
-		
-		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-		
-		while (true) {
-			String line = reader.readLine();
-			if (line == null) {
-				break;
-			}
-			
-			long value;
-			try {
-				value = Long.parseLong(line);
-			} catch (NumberFormatException e) {
-				continue;
-			}
-			
-			if (skip <= 0) {
-				run.addSamples(value);
-			} else {
-				skip--;
-			}
-		}
-		
-		return run.create();
+	private static BenchmarkRunBuilder fromLineOrientedInner(InputStream is) throws IOException {
+	    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+	    BenchmarkRunBuilder run = new BenchmarkRunBuilder();
+	    String line;
+	    while ((line = reader.readLine ()) != null) {
+	    	try {
+	    	    long value = Long.parseLong(line);
+		    run.addSamples(value);
+	    	} catch (NumberFormatException e) { }
+	    }
+	    return run;
 	}
-	
-	
 }

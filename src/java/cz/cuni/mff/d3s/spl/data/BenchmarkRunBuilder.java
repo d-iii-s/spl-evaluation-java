@@ -29,9 +29,17 @@ public class BenchmarkRunBuilder {
 	
 	public BenchmarkRunBuilder() {
 	}
-	
+
 	public BenchmarkRun create() {
-		return new ImmutableBenchmarkRun(samples);
+	    	return create (0);
+	}
+
+	public BenchmarkRun create(int skip) {
+		return new ImmutableBenchmarkRun(samples, skip);
+	}
+
+	public BenchmarkRun create(double skip) {
+	    	return new ImmutableBenchmarkRun(samples, (int) (samples.size () * skip));
 	}
 	
 	public synchronized BenchmarkRunBuilder addSamples(long... values) {
