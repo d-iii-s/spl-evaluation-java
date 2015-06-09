@@ -45,6 +45,28 @@ public class BenchmarkRunBuilderTest {
 	}
 	
 	@Test
+	public void skipSampleCount() {
+		builder.addSamples(0, 1, 2, 3, 4);
+		
+		TestUtils.assertBenchmarkRun(builder.create(0), 0, 1, 2, 3, 4);
+		TestUtils.assertBenchmarkRun(builder.create(1), 1, 2, 3, 4);
+		TestUtils.assertBenchmarkRun(builder.create(2), 2, 3, 4);
+		TestUtils.assertBenchmarkRun(builder.create(3), 3, 4);
+		TestUtils.assertBenchmarkRun(builder.create(4), 4);
+	}
+	
+	@Test
+	public void skipSamplePercentage() {
+		builder.addSamples(0, 1, 2, 3, 4);
+		
+		TestUtils.assertBenchmarkRun(builder.create(0.0), 0, 1, 2, 3, 4);
+		TestUtils.assertBenchmarkRun(builder.create(0.2), 1, 2, 3, 4);
+		TestUtils.assertBenchmarkRun(builder.create(0.4), 2, 3, 4);
+		TestUtils.assertBenchmarkRun(builder.create(0.6), 3, 4);
+		TestUtils.assertBenchmarkRun(builder.create(0.8), 4);
+	}
+	
+	@Test
 	public void createdRunsAreImmutable() {
 		builder.addSamples(0, 1, 2);
 		BenchmarkRun run1 = builder.create();
