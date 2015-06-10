@@ -92,6 +92,15 @@
 		</javac>
 	</target>
 	
+	<target name="jar-demos-self-contained" depends="compile-demos">
+		<mkdir dir="${jar.build.dir}" />
+		<jar destfile="${jar.build.dir}/spl-evaluation-demo.jar">
+			<zipgroupfileset file="${commons.math.jar.path}" />
+			<fileset dir="${demo.classes.build.dir}" />
+			<fileset dir="${classes.build.dir}" />
+		</jar>
+	</target>
+	
 	<target name="refdoc" depends="compile-parser">
 		<mkdir dir="${javadoc.build.dir}" />
 		<echo message="Running JavaDoc..." />
