@@ -43,8 +43,8 @@ public class WelchTestWithEnlargedVariancesInterpretation implements Interpretat
 	/** {@inheritDoc} */
 	@Override
 	public ComparisonResult compare(DataSnapshot left, DataSnapshot right) {
-		NeededStatistics leftStat = NeededStatistics.create(left);
-		NeededStatistics rightStat = NeededStatistics.create(right);
+		NeededStatistics leftStat = NeededStatistics.create(left, getHistoricalIfAvailable(left));
+		NeededStatistics rightStat = NeededStatistics.create(right, getHistoricalIfAvailable(right));
 		
 		double stat = getStatistic(leftStat, rightStat);
 		
@@ -65,17 +65,32 @@ public class WelchTestWithEnlargedVariancesInterpretation implements Interpretat
 		return numer / denom;
 	}
 	
+	private DataSnapshot getHistoricalIfAvailable(DataSnapshot data) {
+		try  {
+			DataSnapshot result = data.getPreviousEpoch();
+			if ((result == null) || (result.getRunCount() == 0)) {
+				return data;
+			} else {
+				return result;
+			}
+		} catch (UnsupportedOperationException e) {
+			return data;
+		}
+	}
+	
 	private static class NeededStatistics {
 		private double mean;
 		private double sigma2;
 		
-		public static NeededStatistics create(DataSnapshot data) {
+		public static NeededStatistics create(DataSnapshot data, DataSnapshot historical) {
 			NeededStatistics result = new NeededStatistics();
 			
 			Collection<Double> meansCollection = BenchmarkRunUtils.reduce(data.getRuns(), BenchmarkRunUtils.MEAN);
 			double[] means = ArrayUtils.makeArray(meansCollection);
 			result.mean = StatisticsUtils.mean(means);
-			double varianceOfMeans = StatisticsUtils.variance(means);
+			
+			double[] meansHistorical = ArrayUtils.makeArray(BenchmarkRunUtils.reduce(historical.getRuns(), BenchmarkRunUtils.MEAN));
+			double varianceOfMeansHistorical = StatisticsUtils.variance(meansHistorical);
 			
 			Collection<Double> variancesCollection = BenchmarkRunUtils.reduce(data.getRuns(), BenchmarkRunUtils.VARIANCE_N);
 			double meanOfVariances = StatisticsUtils.mean(ArrayUtils.makeArray(variancesCollection));
@@ -85,7 +100,7 @@ public class WelchTestWithEnlargedVariancesInterpretation implements Interpretat
 				totalSampleCount += run.getSampleCount();
 			}
 			
-			result.sigma2 = varianceOfMeans / data.getRunCount()
+			result.sigma2 = varianceOfMeansHistorical / data.getRunCount()
 					+ meanOfVariances / totalSampleCount;
 			
 			return result;
