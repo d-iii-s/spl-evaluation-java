@@ -45,8 +45,10 @@
 	
 	<target name="compile" depends="compile-parser">
 		<mkdir dir="${classes.build.dir}" />
-		<javac srcdir="${java.src.dir}" destdir="${classes.build.dir}"
+		<javac srcdir="${java.src.dir}"
+				destdir="${classes.build.dir}"
 				debug="true"
+				debuglevel="lines"
 				includeantruntime="false">
 			<src path="${java.src.dir}" />
 			<src path="${parser.build.dir}" />
@@ -70,6 +72,7 @@
 		<javac srcdir="${java.test.src.dir}"
 				destdir="${test.classes.build.dir}"
 				debug="true"
+				debuglevel="lines"
 				includeantruntime="false">
 			<classpath>
 				<pathelement path="${junit.jar.path}"/>
@@ -84,6 +87,8 @@
 		<mkdir dir="${demo.classes.build.dir}" />
 		<javac srcdir="${java.demo.src.dir}"
 				destdir="${demo.classes.build.dir}"
+				debug="true"
+				debuglevel="lines"
 				includeantruntime="false">
 			<classpath>
 				<pathelement path="${classes.build.dir}" />
