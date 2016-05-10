@@ -23,15 +23,15 @@ import cz.cuni.mff.d3s.spl.ComparisonResult;
 /** Data set comparison result that uses probability distributions.
  */
 public class DistributionBasedComparisonResult implements ComparisonResult {
-	private double statistic;
-	private RealDistribution distribution;
+	private final double statistic;
+	private final RealDistribution distribution;
 	
 	/** Create the result from precomputed statistics and corresponding distribution,.
 	 * 
 	 * @param stat Statistics value.
 	 * @param distr Probability distribution.
 	 */
-	public DistributionBasedComparisonResult(double stat, RealDistribution distr) {
+	public DistributionBasedComparisonResult(final double stat, final RealDistribution distr) {
 		statistic = stat;
 		distribution = distr;
 	}
@@ -44,11 +44,13 @@ public class DistributionBasedComparisonResult implements ComparisonResult {
 
 	/** {@inheritDoc} */
 	@Override
-	public Relation get(double significanceLevel) {
-		boolean lt = statistic > getCriticalValue(significanceLevel);
-		boolean gt = statistic < getCriticalValue(1. - significanceLevel);
+	public Relation get(final double significanceLevel) {
+		final double criticalValue1 = getCriticalValue(significanceLevel);
+		final boolean lt = statistic > criticalValue1;
+		final double criticalValue2 = getCriticalValue(1. - significanceLevel);
+		final boolean gt = statistic < criticalValue2;
 		
-		if (!lt && !gt) {
+		if (lt && gt) {
 			return Relation.EQUAL;
 		} else if (lt) {
 			return Relation.GREATER_THAN;
@@ -59,13 +61,13 @@ public class DistributionBasedComparisonResult implements ComparisonResult {
 
 	/** {@inheritDoc} */
 	@Override
-	public double getCriticalValue(double significanceLevel) {
+	public double getCriticalValue(final double significanceLevel) {
 		return distribution.inverseCumulativeProbability(significanceLevel);
 	}
 	
 	/** {@inheritDoc} */
 	@Override
-	public double[] getConfidenceInterval(double confidenceLevel) {
+	public double[] getConfidenceInterval(final double confidenceLevel) {
 		throw new UnsupportedOperationException("Confidence interval computation not implemented.");
 	}
 	
