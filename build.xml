@@ -18,8 +18,8 @@
 <project basedir="." name="SPL evaluation" default="main">
 	<property file="local-settings.ini" />
 	
-	<property name="java.src.dir" value="src/java" />
-	<property name="java.test.src.dir" value="src/test-java" />
+	<property name="java.src.dir" value="src/main/java" />
+	<property name="java.test.src.dir" value="src/test/java" />
 	<property name="java.demo.src.dir" value="src/demo-java" />
 	
 	<property name="lib.dir" value="lib" />
