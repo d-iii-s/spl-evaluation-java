@@ -54,7 +54,7 @@ public class FileDataSource implements DataSource {
 	 * @return Data source backed by the files.
 	 */
 	public static FileDataSource load(File... files) {
-		return loadInner (files, x -> { });
+		return loadInner (files, x -> x.reload());
 	}
 	
 	/** Create a data source from given files.
@@ -85,7 +85,7 @@ public class FileDataSource implements DataSource {
 	 * @return Data source backed by the files.
 	 */
 	public static FileDataSource load(Collection<File> files) {
-		return loadInner(files.toArray (new File[0]), x -> { });
+		return loadInner(files.toArray (new File[0]), x -> x.reload());
 	}
 	
 	/** Create a data source from given files.
