@@ -169,7 +169,8 @@ public class DistributionLearningInterpretation implements Interpretation {
 		return summary.getMean();
 	}
 	
-	private void bootstrapWithMean(double[] data, int bootstrapLength, int count, double[] result, int resultStartIndex) {
+	private void bootstrapWithMean(double[] data, int bootstrapLength, int count,
+	                               double[] result, int resultStartIndex) {
 		double[] tmp = new double[bootstrapLength];
 		
 		for (int i = 0; i < count; i++) {

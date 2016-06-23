@@ -18,7 +18,7 @@ public class FormulaParsingException extends RuntimeException {
 	}
 	
 	public FormulaParsingException(TokenMgrError cause, String formula) {
-		super(String.format("Lexical error in \"%s\".",
+		super(String.format("Lexical error in \"%s\" caused by \"%s\".",
 				getFirstCharacters(formula, 15),
 				cause.getMessage()), cause);
 		
