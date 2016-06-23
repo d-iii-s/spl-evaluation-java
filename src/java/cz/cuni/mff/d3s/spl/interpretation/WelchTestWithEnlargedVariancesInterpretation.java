@@ -89,10 +89,12 @@ public class WelchTestWithEnlargedVariancesInterpretation implements Interpretat
 			double[] means = ArrayUtils.makeArray(meansCollection);
 			result.mean = StatisticsUtils.mean(means);
 			
-			double[] meansHistorical = ArrayUtils.makeArray(BenchmarkRunUtils.reduce(historical.getRuns(), BenchmarkRunUtils.MEAN));
+			double[] meansHistorical = ArrayUtils.makeArray(
+					BenchmarkRunUtils.reduce(historical.getRuns(), BenchmarkRunUtils.MEAN));
 			double varianceOfMeansHistorical = StatisticsUtils.variance(meansHistorical);
 			
-			Collection<Double> variancesCollection = BenchmarkRunUtils.reduce(data.getRuns(), BenchmarkRunUtils.VARIANCE_N);
+			Collection<Double> variancesCollection = BenchmarkRunUtils.reduce(
+					data.getRuns(), BenchmarkRunUtils.VARIANCE_N);
 			double meanOfVariances = StatisticsUtils.mean(ArrayUtils.makeArray(variancesCollection));
 			
 			long totalSampleCount = 0;

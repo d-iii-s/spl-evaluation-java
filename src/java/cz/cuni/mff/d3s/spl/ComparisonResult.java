@@ -65,7 +65,10 @@ public interface ComparisonResult {
 			}
 		};
 		
-		/** Get relation as short string. */
+		/** Get relation as short string.
+		 *
+		 * @return Relation as short string.
+		 */
 		public abstract String toShortString();
 	};
 	

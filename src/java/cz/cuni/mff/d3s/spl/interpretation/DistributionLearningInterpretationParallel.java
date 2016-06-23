@@ -58,7 +58,8 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 		this(new ForkJoinPool(1));
 	}
 	
-	private DistributionLearningInterpretationParallel(ExecutorService execService, int innerMeansSize, int outerMeansSize, int diffDistrSize) {
+	private DistributionLearningInterpretationParallel(ExecutorService execService, int innerMeansSize,
+	                                                   int outerMeansSize, int diffDistrSize) {
 		bootstrapSizeInnerMeans = innerMeansSize;
 		bootstrapSizeOuterMeans = outerMeansSize;
 		diffDistributionSampleCount = diffDistrSize;
@@ -66,17 +67,20 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 	}
 	
 	public static DistributionLearningInterpretationParallel getFast(ExecutorService executor) {
-		DistributionLearningInterpretationParallel result = new DistributionLearningInterpretationParallel(executor, 100, 100, 1000);
+		DistributionLearningInterpretationParallel result =
+				new DistributionLearningInterpretationParallel(executor, 100, 100, 1000);
 		return result;
 	}
 	
 	public static DistributionLearningInterpretationParallel get(ExecutorService executor) {
-		DistributionLearningInterpretationParallel result = new DistributionLearningInterpretationParallel(executor);
+		DistributionLearningInterpretationParallel result =
+				new DistributionLearningInterpretationParallel(executor);
 		return result;
 	}
 	
 	public static DistributionLearningInterpretationParallel getReasonable(ExecutorService executor) {
-		DistributionLearningInterpretationParallel result = new DistributionLearningInterpretationParallel(executor, 1000, 1000, 10000);
+		DistributionLearningInterpretationParallel result =
+				new DistributionLearningInterpretationParallel(executor, 1000, 1000, 10000);
 		return result;
 	}
 	
@@ -95,15 +99,16 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 		}
 	}
 	
-	private ComparisonResult compareThrowing(DataSnapshot left, DataSnapshot right) throws InterruptedException, ExecutionException {
-	    	// Pack data into arrays because some parts of the computation can then be easily repeated.
-	    	DataSnapshot[] dataSnapshots = new DataSnapshot [2];
-	    	dataSnapshots[0] = left;
-	    	dataSnapshots[1] = right;
+	private ComparisonResult compareThrowing(DataSnapshot left, DataSnapshot right)
+			throws InterruptedException, ExecutionException {
+		// Pack data into arrays because some parts of the computation can then be easily repeated.
+		DataSnapshot[] dataSnapshots = new DataSnapshot [2];
+		dataSnapshots[0] = left;
+		dataSnapshots[1] = right;
 
 		DataSnapshot[] learningSets = getLearningSets(dataSnapshots [0], dataSnapshots [1]);
 		
-	    	// Now just do some parts of the processing twice.
+		// Now just do some parts of the processing twice.
 
 		@SuppressWarnings("unchecked")
 		Future<Double>[] currentMeans = (Future<Double>[]) new Future<?>[2];
@@ -114,16 +119,17 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 		@SuppressWarnings("unchecked")
 		Future<double[]>[] normalizedMeanSamples = (Future<double[]>[]) new Future<?>[2];
 
-		for (int i = 0 ; i < 2 ; i ++) {
-		    	// Compute the mean of the current runs.
-		    	currentMeans[i] = executor.submit(new MeanComputation(dataSnapshots[i]));
-		
-		    	// Compute the mean used to normalize the historical runs.
-		    	historicalMeans[i] = executor.submit(new MeanComputation(learningSets[i]));
+		for (int i = 0; i < 2; i++) {
+			// Compute the mean of the current runs.
+			currentMeans[i] = executor.submit(new MeanComputation(dataSnapshots[i]));
 
-		    	// Bootstrap means of means of samples of the normalized historical runs.
+			// Compute the mean used to normalize the historical runs.
+			historicalMeans[i] = executor.submit(new MeanComputation(learningSets[i]));
+
+			// Bootstrap means of means of samples of the normalized historical runs.
 			Future<double[][]> allSamplesOriginal = executor.submit(new RunsToDoubleArrays(learningSets[i]));
-			Future<double[][]> allSamplesShifted = executor.submit(new SubtractFrom2DArray(allSamplesOriginal, historicalMeans[i]));
+			Future<double[][]> allSamplesShifted = executor.submit(
+					new SubtractFrom2DArray(allSamplesOriginal, historicalMeans[i]));
 			Future<double[]> boostrapped = executor.submit(
 				new DoubleBootstrap(
 					allSamplesShifted, 
@@ -137,12 +143,14 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 		}
 		
 		// Compute the difference of means of means of samples.
-		Future<double[]> normalizedMeanDifferencesFuture = executor.submit(new ArrayDiff(normalizedMeanSamples[0], normalizedMeanSamples[1]));
+		Future<double[]> normalizedMeanDifferencesFuture = executor.submit(
+				new ArrayDiff(normalizedMeanSamples[0], normalizedMeanSamples[1]));
 
 		// Use the distribution of the differences in historical means to classify the difference in current means. 
 		double currentMeanDifference = currentMeans[0].get() - currentMeans[1].get();
 		double[] normalizedMeanDifferences = normalizedMeanDifferencesFuture.get();
-		RealDistribution normalizedMeanDifferenceDistribution = DistributionUtils.makeEmpirical(normalizedMeanDifferences);
+		RealDistribution normalizedMeanDifferenceDistribution =
+				DistributionUtils.makeEmpirical(normalizedMeanDifferences);
 		
 		return new DistributionBasedComparisonResult(currentMeanDifference, normalizedMeanDifferenceDistribution);
 	}
@@ -203,7 +211,8 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 	 * @param result Array of results to append to.
 	 * @param resultStartIndex Starting position in results.
 	 */
-	private static void bootstrapMeans(Random rnd, double[] data, int bootstrapLength, int count, double[] result, int resultStartIndex) {
+	private static void bootstrapMeans(Random rnd, double[] data, int bootstrapLength, int count,
+	                                   double[] result, int resultStartIndex) {
 		double[] tmp = new double[bootstrapLength];
 		
 		for (int i = 0; i < count; i++) {
@@ -217,10 +226,10 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 		private final DataSnapshot[] data;
 		
 		/** Compute the mean of all samples given.
-        	 * 
-        	 * This is not a grand mean, all samples are simply thrown together for the mean computation. 
-        	 * The number of samples in a run and the number of runs in a data snapshot is not considered.
-        	 *  
+		 *
+		 * This is not a grand mean, all samples are simply thrown together for the mean computation.
+		 * The number of samples in a run and the number of runs in a data snapshot is not considered.
+		 *
 		 * @param d Data snapshots to compute the mean from.
 		 */
 		public MeanComputation(DataSnapshot... d) {
@@ -283,7 +292,8 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 		 * @param runCount How many runs to use in each grand mean.
 		 * @param exec The executor service to use.
 		 */
-		public DoubleBootstrap(Future<double[][]> dataFuture, int innerSize, int outerSize, int runCount, ExecutorService exec) {
+		public DoubleBootstrap(Future<double[][]> dataFuture, int innerSize, int outerSize,
+		                       int runCount, ExecutorService exec) {
 			this.dataFuture = dataFuture;
 			bootstrapSizeInnerMeans = innerSize;
 			bootstrapSizeOuterMeans = outerSize;
@@ -298,7 +308,8 @@ public class DistributionLearningInterpretationParallel implements Interpretatio
 			
 			double[] runMeans = new double[runCount * bootstrapSizeInnerMeans];
 			ArrayList<Callable<Void>> tasks = new ArrayList<>(runCount);
-			for (int i = 0; i < runCount; i++) tasks.add(new MeanBootstrap(data[i], runMeans, i * bootstrapSizeInnerMeans, bootstrapSizeInnerMeans));
+			for (int i = 0; i < runCount; i++) tasks.add(
+					new MeanBootstrap(data[i], runMeans, i * bootstrapSizeInnerMeans, bootstrapSizeInnerMeans));
 			
 			executor.invokeAll(tasks);
 				

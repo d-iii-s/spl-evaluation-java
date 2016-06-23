@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import cz.cuni.mff.d3s.spl.BenchmarkRun;
 import cz.cuni.mff.d3s.spl.DataSnapshot;
@@ -43,7 +42,7 @@ public class FileDataSource implements DataSource {
 	
 	@FunctionalInterface
 	private interface FunctionThatThrows<T, R, E extends Throwable> {
-	        R apply(T t) throws E;
+		R apply(T t) throws E;
 	}	
 
 	//
@@ -64,7 +63,7 @@ public class FileDataSource implements DataSource {
 	 * @return Data source backed by the files.
 	 */
 	public static FileDataSource load(int skip, File... files) {
-	    	return loadInner (files, x -> x.reload (skip));
+		return loadInner (files, x -> x.reload(skip));
 	}
 	
 	/** Create a data source from given files.
@@ -74,7 +73,7 @@ public class FileDataSource implements DataSource {
 	 * @return Data source backed by the files.
 	 */
 	public static FileDataSource load(double skip, File... files) {
-	    	return loadInner (files, x -> x.reload (skip));
+		return loadInner (files, x -> x.reload(skip));
 	}
 	
 	//
@@ -95,7 +94,7 @@ public class FileDataSource implements DataSource {
 	 * @return Data source backed by the files.
 	 */
 	public static FileDataSource load(int skip, Collection<File> files) {
-		return loadInner(files.toArray (new File[0]), x -> x.reload (skip));
+		return loadInner(files.toArray (new File[0]), x -> x.reload(skip));
 	}
 
 	/** Create a data source from given files.
@@ -105,12 +104,12 @@ public class FileDataSource implements DataSource {
 	 * @return Data source backed by the files.
 	 */
 	public static FileDataSource load(double skip, Collection<File> files) {
-		return loadInner(files.toArray (new File[0]), x -> x.reload (skip));
+		return loadInner(files.toArray (new File[0]), x -> x.reload(skip));
 	}
 
-	private static FileDataSource loadInner(File [] files, Consumer<FileDataSource> loader) {
-	    FileDataSource result = new FileDataSource (files);
-	    loader.accept (result);
+	private static FileDataSource loadInner(File[] files, Consumer<FileDataSource> loader) {
+	    FileDataSource result = new FileDataSource(files);
+	    loader.accept(result);
 	    return result;
 	}
 	
@@ -158,7 +157,7 @@ public class FileDataSource implements DataSource {
 	 * @param reader Reader to use for the values.
 	 */
 	private void reloadInner(FunctionThatThrows<FileInputStream, BenchmarkRun, IOException> reader) {
-	    initBuilder ();
+	    initBuilder();
 	    for (File file : files) {
 	    	try {
 	    		BenchmarkRun run = reader.apply (new FileInputStream(file));

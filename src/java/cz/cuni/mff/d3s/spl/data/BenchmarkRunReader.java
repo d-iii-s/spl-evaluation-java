@@ -54,7 +54,7 @@ public class BenchmarkRunReader {
 	 * 
 	 * @param is Input stream with data.
 	 * @return Benchmark run with the samples.
-	 * @throws IOException 
+	 * @throws IOException on reading failure.
 	 */
 	public static BenchmarkRun fromLineOriented(InputStream is) throws IOException {
 		BenchmarkRunBuilder run = fromLineOrientedInner(is);
@@ -69,7 +69,7 @@ public class BenchmarkRunReader {
 	 * @param is Input stream with data.
 	 * @param skip Skip this number of samples from the beginning.
 	 * @return Benchmark run with the samples.
-	 * @throws IOException 
+	 * @throws IOException on reading failure.
 	 */
 	public static BenchmarkRun fromLineOriented(InputStream is, int skip) throws IOException {
 		BenchmarkRunBuilder run = fromLineOrientedInner(is);
@@ -84,7 +84,7 @@ public class BenchmarkRunReader {
 	 * @param is Input stream with data.
 	 * @param skip Skip this percentage of samples from the beginning.
 	 * @return Benchmark run with the samples.
-	 * @throws IOException 
+	 * @throws IOException on reading failure.
 	 */
 	public static BenchmarkRun fromLineOriented(InputStream is, double skip) throws IOException {
 		BenchmarkRunBuilder run = fromLineOrientedInner(is);
@@ -98,18 +98,19 @@ public class BenchmarkRunReader {
 	 * 
 	 * @param is Input stream with data.
 	 * @return Benchmark run with the samples.
-	 * @throws IOException 
+	 * @throws IOException on reading failure.
 	 */
 	private static BenchmarkRunBuilder fromLineOrientedInner(InputStream is) throws IOException {
-	    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-	    BenchmarkRunBuilder run = new BenchmarkRunBuilder();
-	    String line;
-	    while ((line = reader.readLine ()) != null) {
-	    	try {
-	    	    long value = Long.parseLong(line);
-		    run.addSamples(value);
-	    	} catch (NumberFormatException e) { }
-	    }
-	    return run;
+		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+		BenchmarkRunBuilder run = new BenchmarkRunBuilder();
+		String line;
+		while ((line = reader.readLine()) != null) {
+			try {
+				long value = Long.parseLong(line);
+				run.addSamples(value);
+			} catch (NumberFormatException e) {
+			}
+		}
+		return run;
 	}
 }

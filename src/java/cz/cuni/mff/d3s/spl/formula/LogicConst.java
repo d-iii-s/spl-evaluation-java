@@ -56,7 +56,7 @@ public final class LogicConst implements Formula {
 	public String toString() {
 		switch (evaluationResult) {
 		case CANNOT_COMPUTE:
-			return "uknown";
+			return "unknown";
 		case FALSE:
 			return "false";
 		case TRUE:

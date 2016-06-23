@@ -34,15 +34,15 @@ public class ImmutableBenchmarkRun implements BenchmarkRun {
 	}
 
 	public ImmutableBenchmarkRun(Collection<Long> samples) {
-	    	this (samples, 0);
+		this(samples, 0);
 	}
 	
 	public ImmutableBenchmarkRun(Collection<Long> samples, int skip) {
-	        int size = samples.size() - skip;
+		int size = samples.size() - skip;
 		int idx = 0 - skip;
 		data = new long[size];
 		for (Long val : samples) {
-		        if (idx >= 0) data[idx] = val;
+			if (idx >= 0) data[idx] = val;
 			idx++;
 		}
 	}

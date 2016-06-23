@@ -270,7 +270,8 @@ public class SensitivityComparison {
 		 * @param t What test to use.
 		 * @param alfas What confidence levels to use.
 		 */
-		public Evaluator(SimpleComparison cmp, int leftLearnSize, int leftSize, int rightLearnSize, int rightSize, StatisticalTest t, double[] alfas) {
+		public Evaluator(SimpleComparison cmp, int leftLearnSize, int leftSize, int rightLearnSize, int rightSize,
+		                 StatisticalTest t, double[] alfas) {
 			comparison = cmp;
 			test = t;
 			alphas = alfas;
@@ -283,15 +284,18 @@ public class SensitivityComparison {
 		@Override
 		public void run() {
 		    	// Generate random subsets of both current and historical data to use for comparison.
-			DataSnapshot left = getSubset(comparison.left, leftSubsetSize, getSubset(comparison.left, leftLearnSubsetSize, null));
-			DataSnapshot right = getSubset(comparison.right, rightSubsetSize, getSubset(comparison.right, rightLearnSubsetSize, null));
+			DataSnapshot left = getSubset(comparison.left, leftSubsetSize,
+					getSubset(comparison.left, leftLearnSubsetSize, null));
+			DataSnapshot right = getSubset(comparison.right, rightSubsetSize,
+					getSubset(comparison.right, rightLearnSubsetSize, null));
 
 			// Get a list of results for a range of confidence levels.
 			// Accumulate the results in the associated comparison object.
 			boolean[] result = test.getRejects(left, comparison.op, right, alphas);
 			for (int i = 0; i < result.length; i++) {
 				String name = test.getName(alphas[i]);
-				String resultId = String.format("%s.%d.%d.%d.%d", name, leftLearnSubsetSize, leftSubsetSize, rightLearnSubsetSize, rightSubsetSize);
+				String resultId = String.format("%s.%d.%d.%d.%d", name, leftLearnSubsetSize, leftSubsetSize,
+						rightLearnSubsetSize, rightSubsetSize);
 				comparison.addResult(resultId, result[i]);
 			}
 		}
@@ -608,7 +612,8 @@ public class SensitivityComparison {
 			} else {
 				timeDiffMillisPerJob = timeDiffMillis / jobs.size();
 			}
-			System.out.printf("# Took %ds for %d jobs (about %dms per job).\n", timeDiffSec, jobs.size(), timeDiffMillisPerJob);
+			System.out.printf("# Took %ds for %d jobs (about %dms per job).\n", timeDiffSec, jobs.size(),
+					timeDiffMillisPerJob);
 		}
 		
 		System.out.printf("%-55s", "");
@@ -622,10 +627,12 @@ public class SensitivityComparison {
 		
 		for (SimpleComparison comparison : comparisons) {
 			for (int[] subset : subsets) {
-				System.out.printf("%-55s", String.format("%s %2d:%2d [%2d:%2d]", comparison.name, subset[0], subset[2], subset[1], subset[3]));
+				System.out.printf("%-55s", String.format("%s %2d:%2d [%2d:%2d]", comparison.name, subset[0],
+						subset[2], subset[1], subset[3]));
 				for (StatisticalTest test : tests) {
 					for (double alpha : alphasCol) {
-						String name = String.format("%s.%d.%d.%d.%d", test.getName(alpha), subset[0], subset[1], subset[2], subset[3]);
+						String name = String.format("%s.%d.%d.%d.%d", test.getName(alpha), subset[0], subset[1],
+								subset[2], subset[3]);
 						System.out.printf("%30s", comparison.getResult(name));
 					}
 				}
