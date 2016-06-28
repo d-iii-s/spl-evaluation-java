@@ -101,16 +101,16 @@ public class BenchmarkRunReader {
 	 * @throws IOException on reading failure.
 	 */
 	private static BenchmarkRunBuilder fromLineOrientedInner(InputStream is) throws IOException {
-	    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-	    BenchmarkRunBuilder run = new BenchmarkRunBuilder();
-	    String line;
-	    while ((line = reader.readLine()) != null) {
-	    	try {
-	    	    long value = Long.parseLong(line);
+		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+		BenchmarkRunBuilder run = new BenchmarkRunBuilder();
+		String line;
+		while ((line = reader.readLine()) != null) {
+			try {
+				long value = Long.parseLong(line);
 				run.addSamples(value);
-	    	} catch (NumberFormatException e) {
-		    }
-	    }
-	    return run;
+			} catch (NumberFormatException e) {
+			}
+		}
+		return run;
 	}
 }
