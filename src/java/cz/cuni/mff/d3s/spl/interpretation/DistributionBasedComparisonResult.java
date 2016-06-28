@@ -48,7 +48,7 @@ public class DistributionBasedComparisonResult implements ComparisonResult {
 		boolean lt = statistic > getCriticalValue(significanceLevel);
 		boolean gt = statistic < getCriticalValue(1. - significanceLevel);
 		
-		if (!lt && !gt) {
+		if (lt && gt) {
 			return Relation.EQUAL;
 		} else if (lt) {
 			return Relation.GREATER_THAN;
