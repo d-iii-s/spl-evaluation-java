@@ -25,6 +25,7 @@
 	<property name="lib.dir" value="lib" />
 	<property name="junit.jar.path" value="${lib.dir}/junit-4.11.jar" />
 	<property name="commons.math.jar.path" value="${lib.dir}/commons-math3-3.5.jar" />
+	<property name="javax.json.jar.path" value="${lib.dir}/javax.json-1.0.4.jar" />
 	<property name="javacc.home" value="${lib.dir}/javacc-6.0/" />
 	
 	<property name="build.dir" value="out" />
@@ -52,6 +53,7 @@
 			<src path="${parser.build.dir}" />
 			<classpath>
 				<pathelement path="${commons.math.jar.path}" />
+				<pathelement path="${javax.json.jar.path}" />
 			</classpath>
 			<compilerarg value="-Xlint:all"/>
 		</javac>
@@ -75,6 +77,7 @@
 				<pathelement path="${junit.jar.path}"/>
 				<pathelement path="${classes.build.dir}" />
 				<pathelement path="${commons.math.jar.path}" />
+				<pathelement path="${javax.json.jar.path}" />
 			</classpath>
 			<compilerarg value="-Xlint:all"/>
 		</javac>
@@ -137,6 +140,7 @@
 				<pathelement path="${test.classes.build.dir}"/>
 				<pathelement path="${classes.build.dir}"/>
 				<pathelement path="${commons.math.jar.path}" />
+				<pathelement path="${javax.json.jar.path}" />
 			</classpath>
 			
 			<formatter type="plain" />
