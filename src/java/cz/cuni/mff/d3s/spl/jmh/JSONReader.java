@@ -9,7 +9,6 @@ import cz.cuni.mff.d3s.spl.data.DataSnapshotBuilder;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
@@ -62,7 +61,8 @@ public class JSONReader {
 
 			int valueCount = value.getInt(1);
 			for (int i = 0; i < valueCount; i++) {
-				run.addSamples((long)value.getJsonNumber(0).doubleValue());
+				//run.addSamples((long)value.getJsonNumber(0).doubleValue());
+				run.addSamples(Math.round(value.getJsonNumber(0).doubleValue()));
 			}
 		}
 

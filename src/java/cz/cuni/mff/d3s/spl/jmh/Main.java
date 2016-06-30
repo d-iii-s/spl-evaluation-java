@@ -7,10 +7,6 @@ import cz.cuni.mff.d3s.spl.formula.SplFormula;
 import cz.cuni.mff.d3s.spl.interpretation.WelchTestInterpretation;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.FileTime;
 import java.util.*;
 
 
@@ -91,7 +87,7 @@ public class Main {
 
 				Result result = improved.evaluate(SIGNIFICANCE_LEVEL);
 				if (result != Result.TRUE) {
-					System.out.printf(" possible regression between %s and %s!\n",
+					System.out.printf("  - possible regression between %s and %s!\n",
 							revisions.get(i).name, revisions.get(i + 1).name);
 				}
 			}
