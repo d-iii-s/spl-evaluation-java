@@ -84,4 +84,14 @@ class JsonDataSource implements DataSource {
 	public DataSnapshot makeSnapshot() {
 		return builder.create();
 	}
+
+	@Override
+	public DataSnapshot makeSnapshot(int skip) {
+		return builder.create(skip);
+	}
+
+	@Override
+	public DataSnapshot makeSnapshot(double skip) {
+		return builder.create(skip);
+	}
 }

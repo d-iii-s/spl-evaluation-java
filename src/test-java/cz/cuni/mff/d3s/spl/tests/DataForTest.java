@@ -74,4 +74,16 @@ public class DataForTest implements DataSource {
 		return snapshot;
 	}
 
+	@Override
+	public DataSnapshot makeSnapshot(int skip) {
+		//TODO:
+		return null;
+	}
+
+	@Override
+	public DataSnapshot makeSnapshot(double skip) {
+		//TODO:
+		return null;
+	}
+
 }

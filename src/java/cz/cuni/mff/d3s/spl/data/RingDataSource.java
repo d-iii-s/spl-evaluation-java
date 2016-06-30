@@ -109,7 +109,19 @@ public class RingDataSource implements DataSource {
 		
 		return buildSnapshot().setPreviousEpoch(lastSnapshot).create();
 	}
-	
+
+	@Override
+	public DataSnapshot makeSnapshot(int skip) {
+		// TODO:
+		return null;
+	}
+
+	@Override
+	public DataSnapshot makeSnapshot(double skip) {
+		// TODO:
+		return null;
+	}
+
 	private DataSnapshotBuilder buildSnapshot() {
 		DataSnapshotBuilder builder = new DataSnapshotBuilder();
 		

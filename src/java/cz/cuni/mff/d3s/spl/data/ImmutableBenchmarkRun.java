@@ -47,13 +47,18 @@ public class ImmutableBenchmarkRun implements BenchmarkRun {
 		}
 	}
 	
-	public ImmutableBenchmarkRun(BenchmarkRun run) {
+	public ImmutableBenchmarkRun(BenchmarkRun run, int skip) {
 		synchronized (run) {
-			data = new long[run.getSampleCount()];
+			int itemsCount = run.getSampleCount() - skip;
+			data = new long[itemsCount];
 			for (int i = 0; i < data.length; i++) {
-				data[i] = run.getSample(i);
+				data[i] = run.getSample(i + skip);
 			}
 		}
+	}
+
+	public ImmutableBenchmarkRun(BenchmarkRun run) {
+		this(run, 0);
 	}
 
 	@Override

@@ -31,7 +31,7 @@ public class BenchmarkRunBuilder {
 	}
 
 	public BenchmarkRun create() {
-		return create (0);
+		return create(0);
 	}
 
 	public BenchmarkRun create(int skip) {
@@ -39,7 +39,7 @@ public class BenchmarkRunBuilder {
 	}
 
 	public BenchmarkRun create(double skip) {
-		return new ImmutableBenchmarkRun(samples, (int) (samples.size () * skip));
+		return new ImmutableBenchmarkRun(samples, (int) (samples.size() * skip));
 	}
 	
 	public synchronized BenchmarkRunBuilder addSamples(long... values) {
