@@ -77,9 +77,7 @@ public class DataSnapshotBuilder {
 		public Snapshot(List<BenchmarkRun> data, DataSnapshot prev) {
 			synchronized (data) {
 				runs = new ArrayList<>(data.size());
-				for (BenchmarkRun run : data) {
-					runs.add(run);
-				}
+				runs.addAll(data);
 			}
 			prevEpoch = prev;
 		}

@@ -54,7 +54,7 @@ public class LineOrientedReader implements DataReader {
 	 * @return Benchmark run with the samples.
 	 * @throws ReaderException on reading failure.
 	 */
-	private static BenchmarkRunBuilder readLineOrientedData(InputStream is) throws ReaderException {
+	private BenchmarkRunBuilder readLineOrientedData(InputStream is) throws ReaderException {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
 		BenchmarkRunBuilder run = new BenchmarkRunBuilder();
 		String line;
