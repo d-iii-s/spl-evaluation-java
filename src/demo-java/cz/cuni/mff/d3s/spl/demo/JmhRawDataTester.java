@@ -1,8 +1,10 @@
-package cz.cuni.mff.d3s.spl.jmh;
+package cz.cuni.mff.d3s.spl.demo;
 
+import cz.cuni.mff.d3s.spl.DataReader;
 import cz.cuni.mff.d3s.spl.DataSource;
 import cz.cuni.mff.d3s.spl.Formula;
 import cz.cuni.mff.d3s.spl.Result;
+import cz.cuni.mff.d3s.spl.data.readers.RawJsonReader;
 import cz.cuni.mff.d3s.spl.formula.SplFormula;
 import cz.cuni.mff.d3s.spl.interpretation.WelchTestInterpretation;
 
@@ -10,10 +12,7 @@ import java.io.File;
 import java.util.*;
 
 
-/**
- * Created by petr on 28.6.16.
- */
-public class Main {
+public class JmhRawDataTester {
 	private static final double SIGNIFICANCE_LEVEL = 0.95;
 
 	private static class Revision {
@@ -58,7 +57,14 @@ public class Main {
 		for (File file : files) {
 			System.out.printf("Reading data from %s revision...", file.getName());
 
-			Map<String, DataSource> revisionData = JSONReader.readRevision(file);
+			DataReader reader = new RawJsonReader();
+			Map<String, DataSource> revisionData = null;
+			try {
+				revisionData = reader.readRevision(file);
+			} catch (DataReader.ReaderException e) {
+				e.printStackTrace();
+				System.exit(2);
+			}
 
 			for (Map.Entry<String, DataSource> benchmark : revisionData.entrySet()) {
 				if (!data.containsKey(benchmark.getKey())) {
@@ -95,7 +101,7 @@ public class Main {
 	}
 
 	private static void printUsage() {
-		final String selfName = Main.class.getName();
+		final String selfName = JmhRawDataTester.class.getName();
 		System.out.printf("Usage: java [jvm-opts] %s directory name\n", selfName);
 		System.out.println(" Directory should contain JSON files from JMH framework");
 		System.out.println(" with name as revision (version) identifier. Files will");
