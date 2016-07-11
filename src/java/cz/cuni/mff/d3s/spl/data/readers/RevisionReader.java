@@ -1,5 +1,6 @@
 package cz.cuni.mff.d3s.spl.data.readers;
 
+import cz.cuni.mff.d3s.spl.DataReader;
 import cz.cuni.mff.d3s.spl.DataSource;
 
 import java.io.File;
@@ -27,45 +28,5 @@ public interface RevisionReader {
 	 *          If there is no info about name in the data, "default"
 	 *          key is used instead.
 	 */
-	Map<String, DataSource> readRevision(File... files) throws ReaderException;
-
-	/**
-	 * Exception indicating error when reading revision data. Possible causes
-	 * are IO error, wrong data format, etc.
-	 */
-	class ReaderException extends Exception {
-
-		/**
-		 * Standard constructor.
-		 */
-		public ReaderException() {}
-
-		/**
-		 * Constructor which specify error message.
-		 *
-		 * @param message description of error
-		 */
-		public ReaderException(String message) {
-			super(message);
-		}
-
-		/**
-		 * Specify error message and exception which caused this particular one.
-		 *
-		 * @param message description of error
-		 * @param cause exception which cause this one to be thrown
-		 */
-		public ReaderException(String message, Throwable cause) {
-			super(message, cause);
-		}
-
-		/**
-		 * Construct exception which was thrown as reaction to given one.
-		 *
-		 * @param cause exception which cause this one to be thrown
-		 */
-		public ReaderException(Throwable cause) {
-			super(cause);
-		}
-	}
+	Map<String, DataSource> readRevision(File... files) throws DataReader.ReaderException;
 }

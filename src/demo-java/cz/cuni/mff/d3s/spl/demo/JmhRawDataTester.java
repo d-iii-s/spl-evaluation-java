@@ -1,5 +1,6 @@
 package cz.cuni.mff.d3s.spl.demo;
 
+import cz.cuni.mff.d3s.spl.DataReader;
 import cz.cuni.mff.d3s.spl.data.readers.RevisionReader;
 import cz.cuni.mff.d3s.spl.DataSource;
 import cz.cuni.mff.d3s.spl.Formula;
@@ -61,7 +62,7 @@ public class JmhRawDataTester {
 			Map<String, DataSource> revisionData = null;
 			try {
 				revisionData = reader.readRevision(file);
-			} catch (RevisionReader.ReaderException e) {
+			} catch (DataReader.ReaderException e) {
 				e.printStackTrace();
 				System.exit(2);
 			}

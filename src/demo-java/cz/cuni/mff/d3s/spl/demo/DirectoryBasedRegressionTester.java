@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import cz.cuni.mff.d3s.spl.DataReader;
 import cz.cuni.mff.d3s.spl.data.readers.RevisionReader;
 import cz.cuni.mff.d3s.spl.DataSource;
 import cz.cuni.mff.d3s.spl.Formula;
@@ -66,7 +67,7 @@ public class DirectoryBasedRegressionTester {
 			Map<String, DataSource> data = null;
 			try {
 				data = reader.readRevision(dir.listFiles());
-			} catch (RevisionReader.ReaderException e) {
+			} catch (DataReader.ReaderException e) {
 				e.printStackTrace();
 				System.exit(2);
 			}

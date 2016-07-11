@@ -42,7 +42,7 @@ public class PlainDataReader<T extends RevisionReader> implements DataReader {
 	 *          unit as value.
 	 */
 	@Override
-	public Map<String, List<Revision>> readData(String[] args) {
+	public Map<String, List<Revision>> readData(String[] args) throws ReaderException {
 		Map<String, List<Revision>> data = new HashMap<>();
 		data.put("default", new LinkedList<>());
 
@@ -50,15 +50,7 @@ public class PlainDataReader<T extends RevisionReader> implements DataReader {
 			File dir = new File(dirname);
 
 			System.out.printf("Reading data from %s...", dirname);
-
-			Map<String, DataSource> revision = null;
-			try {
-				revision = reader.readRevision(dir.listFiles());
-			} catch (RevisionReader.ReaderException e) {
-				e.printStackTrace();
-				System.exit(2);
-			}
-
+			Map<String, DataSource> revision = reader.readRevision(dir.listFiles());
 			System.out.printf(" ok, %d run(s).\n", revision.get("default").makeSnapshot().getRunCount());
 
 			data.get("default").add(new Revision(dir.getName(), revision.get("default")));

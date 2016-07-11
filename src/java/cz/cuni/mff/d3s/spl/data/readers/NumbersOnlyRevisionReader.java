@@ -1,6 +1,7 @@
 package cz.cuni.mff.d3s.spl.data.readers;
 
 import cz.cuni.mff.d3s.spl.BenchmarkRun;
+import cz.cuni.mff.d3s.spl.DataReader.ReaderException;
 import cz.cuni.mff.d3s.spl.DataSource;
 import cz.cuni.mff.d3s.spl.data.BenchmarkRunBuilder;
 import cz.cuni.mff.d3s.spl.data.BuilderDataSource;

@@ -36,10 +36,17 @@ public class Main {
 	 *             be changed in future.
 	 */
 	public static void main(String[] args) {
-		DataReader reader = getDataReader(DataReaderType.RawJson);
-		//DataReader reader = getDataReader(DataReaderType.LineOriented);
+		Map<String, List<Revision>> data = null;
 
-		Map<String, List<Revision>> data = reader.readData(args);
+		try {
+			DataReader reader = getDataReader(DataReaderType.RawJson);
+			//DataReader reader = getDataReader(DataReaderType.LineOriented);
+
+			data = reader.readData(args);
+		} catch (DataReader.ReaderException e) {
+			System.out.println("Error reading data: " + e.getMessage());
+			System.exit(1);
+		}
 
 		Formula improved = SplFormula.create("new < old");
 		improved.setInterpretation(new WelchTestInterpretation());
@@ -71,18 +78,16 @@ public class Main {
 	 * @param type Specifies which data reader to create.
 	 * @return Instance of requested data reader.
 	 */
-	private static DataReader getDataReader(DataReaderType type) {
+	private static DataReader getDataReader(DataReaderType type) throws DataReader.ReaderException {
 		switch (type) {
 			case RawJson:
-				return new JsonDataReader<RawJsonRevisionReader>(new RawJsonRevisionReader.RevisionFactory());
+				return new StructuredDataReader<RawJsonRevisionReader>(new RawJsonRevisionReader.RevisionFactory());
 			case LineOriented:
 				return new PlainDataReader<LineOrientedRevisionReader>(new LineOrientedRevisionReader.RevisionFactory());
 			case NumberOriented:
 				return new PlainDataReader<NumbersOnlyRevisionReader>(new NumbersOnlyRevisionReader.RevisionFactory());
 			default:
-				System.out.println("Unknown data reader! Quitting...");
-				System.exit(3);
-				return null;
+				throw new DataReader.ReaderException("Unknown data reader!");
 		}
 	}
 }

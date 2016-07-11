@@ -532,7 +532,7 @@ public class SensitivityComparison {
 			try {
 				leftSource = reader.readRevision(leftFiles.toArray(new File[leftFiles.size()]));
 				rightSource = reader.readRevision(rightFiles.toArray(new File[rightFiles.size()]));
-			} catch (RevisionReader.ReaderException e) {
+			} catch (DataReader.ReaderException e) {
 				e.printStackTrace();
 			}
 

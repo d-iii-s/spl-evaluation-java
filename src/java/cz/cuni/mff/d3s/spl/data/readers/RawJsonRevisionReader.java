@@ -6,6 +6,7 @@ import cz.cuni.mff.d3s.spl.data.BenchmarkRunBuilder;
 import cz.cuni.mff.d3s.spl.data.BuilderDataSource;
 import cz.cuni.mff.d3s.spl.data.DataSnapshotBuilder;
 import cz.cuni.mff.d3s.spl.utils.Factory;
+import cz.cuni.mff.d3s.spl.DataReader.ReaderException;
 
 import javax.json.*;
 import javax.json.stream.JsonParsingException;

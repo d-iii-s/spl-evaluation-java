@@ -11,7 +11,7 @@ import java.util.*;
  * Data reader from formats like JMH JSON. Generic type provides
  * revision reader from specific format variant.
  */
-public class JsonDataReader<T extends RevisionReader> implements DataReader {
+public class StructuredDataReader<T extends RevisionReader> implements DataReader {
 	/**
 	 * Revision reader instance.
 	 */
@@ -24,7 +24,7 @@ public class JsonDataReader<T extends RevisionReader> implements DataReader {
 	 *                      The instance must be of the same type as generic
 	 *                      type T.
 	 */
-	public JsonDataReader(Factory<T> readerFactory) {
+	public StructuredDataReader(Factory<T> readerFactory) {
 		reader = readerFactory.getInstance();
 	}
 
@@ -41,29 +41,25 @@ public class JsonDataReader<T extends RevisionReader> implements DataReader {
 	 *          unit as value.
 	 */
 	@Override
-	public Map<String, List<Revision>> readData(String[] args) {
+	public Map<String, List<Revision>> readData(String[] args) throws ReaderException {
 		if (args.length != 1) {
-			// TODO: throw some exception
-			System.exit(1);
+			throw new ReaderException("Invalid number of arguments - expected: 1, provided: " + args.length);
 		}
 
 		Map<String, List<Revision>> data = new HashMap<>();
 
 		File dir = new File(args[0]);
 		File[] files = dir.listFiles();
+		if (files == null) {
+			throw new ReaderException("No files could be fetched from directory " + dir.getName());
+		}
+
 		Arrays.sort(files, new FileComparator());
 
 		for (File file : files) {
 			System.out.printf("Reading data from %s revision...", file.getName());
 
-			Map<String, DataSource> revisionData = null;
-			try {
-				revisionData = reader.readRevision(file);
-			} catch (RevisionReader.ReaderException e) {
-				// TODO: throw some exception
-				e.printStackTrace();
-				System.exit(2);
-			}
+			Map<String, DataSource> revisionData = reader.readRevision(file);
 
 			for (Map.Entry<String, DataSource> benchmark : revisionData.entrySet()) {
 				if (!data.containsKey(benchmark.getKey())) {
