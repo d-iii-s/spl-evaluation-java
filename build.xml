@@ -2,6 +2,7 @@
 <!--
   - Copyright 2015 Charles University in Prague
   - Copyright 2015 Vojtech Horky
+  - Copyright 2016 Petr Stefan
   - 
   - Licensed under the Apache License, Version 2.0 (the "License");
   - you may not use this file except in compliance with the License.
@@ -94,11 +95,24 @@
 			<compilerarg value="-Xlint:all"/>
 		</javac>
 	</target>
+
+	<target name="package" depends="compile">
+		<mkdir dir="${jar.build.dir}" />
+		<jar destfile="${jar.build.dir}/spl-evaluation-java.jar">
+			<manifest>
+				<attribute name="Main-Class" value="cz.cuni.mff.d3s.spl.Main"/>
+			</manifest>
+			<zipgroupfileset file="${commons.math.jar.path}" />
+			<zipgroupfileset file="${javax.json.jar.path}" />
+			<fileset dir="${classes.build.dir}" />
+		</jar>
+	</target>
 	
-	<target name="jar-demos-self-contained" depends="compile-demos">
+	<target name="package-demos" depends="compile-demos">
 		<mkdir dir="${jar.build.dir}" />
 		<jar destfile="${jar.build.dir}/spl-evaluation-demo.jar">
 			<zipgroupfileset file="${commons.math.jar.path}" />
+			<zipgroupfileset file="${javax.json.jar.path}" />
 			<fileset dir="${demo.classes.build.dir}" />
 			<fileset dir="${classes.build.dir}" />
 		</jar>

@@ -11,6 +11,7 @@ formulas.
 That is, you would use this library when you have your performance measured
 (or modeled) and you need to evaluate whether your assumptions are correct.
 
+
 ## Requirements
 
 To compile and run the framework, the following software has to be available
@@ -19,20 +20,43 @@ on your machine.
 * Java SDK >= 1.7.0
 * Apache Ant
 
+
 ## Compilation
 
 Simply execute
 
-	ant
+```
+$ ant
+```
 
-to compile the library.
-The attached tests can be compiled and executed by running
+or
 
-	ant test
+```
+$ ant compile
+```
+
+to compile the library. For creating `.jar` package run
+
+```
+$ ant package
+```
+
+Resulting file is `out/jars/spl-evaluation-java.jar`.
 
 All the generated files (classes, test reports) are stored in the `out/`
 directory.
 
+
+## Tests
+
+The attached unit tests can be compiled and executed by running
+
+```
+$ ant test
+```
+
+Test report will be saved to `out/test-results/html/index.html`. There are 4
+failing test now because of not implemented features.
 
 
 ## Documentation...
