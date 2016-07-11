@@ -1,69 +1,26 @@
 package cz.cuni.mff.d3s.spl;
 
-import java.io.File;
+import cz.cuni.mff.d3s.spl.data.Revision;
+
+import java.util.List;
 import java.util.Map;
 
+
 /**
- * Provides unified interface to read data from files.
+ * Provides unified interface to read measured data.
  *
- * Each implementation will specify it's semantics in detail,
- * but common idea is that each reader processes data from
- * given file(s) and returns them as a map with method/benchmark
- * name as a key and data as a value.
+ * Each implementation will specify it's argument semantics. Most
+ * of the readers use one of RevisionReaders to fetch single revision
+ * data.
  */
 public interface DataReader {
-
 	/**
-	 * Read one revision of data from given files. There shouldn't be
-	 * more revisions of the same benchmark/method/... data in one file
-	 * or you shouldn't pass multiple files containing the same data with
-	 * different revisions.
+	 * Reads measured data.
 	 *
-	 * @param files Input files with raw data
-	 * @return Processed data as a map grouped by benchmark/method/...
-	 *          If there is no info about name in the data, "default"
-	 *          key is used instead.
+	 * @param args Specific arguments for each reader.
+	 * @return Map of benchmark/method/... name ("default" if
+	 *          the data doesn't provide custom name) and list
+	 *          of data revisions.
 	 */
-	Map<String, DataSource> readRevision(File... files) throws ReaderException;
-
-
-	/**
-	 * Exception indicating error when reading revision data. Possible causes
-	 * are IO error, wrong data format, etc.
-	 */
-	class ReaderException extends Exception {
-
-		/**
-		 * Standard constructor.
-		 */
-		public ReaderException() {}
-
-		/**
-		 * Constructor which specify error message.
-		 *
-		 * @param message description of error
-		 */
-		public ReaderException(String message) {
-			super(message);
-		}
-
-		/**
-		 * Specify error message and exception which caused this particular one.
-		 *
-		 * @param message description of error
-		 * @param cause exception which cause this one to be thrown
-		 */
-		public ReaderException(String message, Throwable cause) {
-			super(message, cause);
-		}
-
-		/**
-		 * Construct exception which was thrown as reaction to given one.
-		 *
-		 * @param cause exception which cause this one to be thrown
-		 */
-		public ReaderException(Throwable cause) {
-			super(cause);
-		}
-	}
+	Map<String, List<Revision>> readData(String[] args);
 }

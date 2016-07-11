@@ -36,12 +36,11 @@ import java.util.concurrent.Future;
 import cz.cuni.mff.d3s.spl.*;
 import cz.cuni.mff.d3s.spl.data.BenchmarkRunBuilder;
 import cz.cuni.mff.d3s.spl.data.DataSnapshotBuilder;
-import cz.cuni.mff.d3s.spl.data.readers.LineOrientedReader;
+import cz.cuni.mff.d3s.spl.data.readers.LineOrientedRevisionReader;
+import cz.cuni.mff.d3s.spl.data.readers.RevisionReader;
 import cz.cuni.mff.d3s.spl.interpretation.DistributionLearningInterpretationParallel;
 import cz.cuni.mff.d3s.spl.interpretation.WelchTestInterpretation;
 import cz.cuni.mff.d3s.spl.utils.ArrayUtils;
-
-import javax.activation.FileDataSource;
 
 public class SensitivityComparison {
 	private static enum ComparisonOperator {
@@ -529,11 +528,11 @@ public class SensitivityComparison {
 			    continue;
 			}
 
-			DataReader reader = new LineOrientedReader();
+			RevisionReader reader = new LineOrientedRevisionReader();
 			try {
 				leftSource = reader.readRevision(leftFiles.toArray(new File[leftFiles.size()]));
 				rightSource = reader.readRevision(rightFiles.toArray(new File[rightFiles.size()]));
-			} catch (DataReader.ReaderException e) {
+			} catch (RevisionReader.ReaderException e) {
 				e.printStackTrace();
 			}
 

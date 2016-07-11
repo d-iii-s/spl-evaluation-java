@@ -1,11 +1,11 @@
 package cz.cuni.mff.d3s.spl.data.readers;
 
 import cz.cuni.mff.d3s.spl.BenchmarkRun;
-import cz.cuni.mff.d3s.spl.DataReader;
 import cz.cuni.mff.d3s.spl.DataSource;
 import cz.cuni.mff.d3s.spl.data.BenchmarkRunBuilder;
 import cz.cuni.mff.d3s.spl.data.BuilderDataSource;
 import cz.cuni.mff.d3s.spl.data.DataSnapshotBuilder;
+import cz.cuni.mff.d3s.spl.utils.Factory;
 
 import javax.json.*;
 import javax.json.stream.JsonParsingException;
@@ -26,7 +26,7 @@ import java.util.Map;
  * the key in the results. Note, that benchmark name must be unique
  * across all provided files!
  */
-public class RawJsonReader implements DataReader {
+public class RawJsonRevisionReader implements RevisionReader {
 
 	/**
 	 * Read one revision from given files. There are multiple benchmark
@@ -65,6 +65,13 @@ public class RawJsonReader implements DataReader {
 		}
 
 		return result;
+	}
+
+	public static class RevisionFactory implements Factory<RawJsonRevisionReader> {
+		@Override
+		public RawJsonRevisionReader getInstance() {
+			return new RawJsonRevisionReader();
+		}
 	}
 
 	/**

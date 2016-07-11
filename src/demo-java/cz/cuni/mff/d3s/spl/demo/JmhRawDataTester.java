@@ -1,10 +1,10 @@
 package cz.cuni.mff.d3s.spl.demo;
 
-import cz.cuni.mff.d3s.spl.DataReader;
+import cz.cuni.mff.d3s.spl.data.readers.RevisionReader;
 import cz.cuni.mff.d3s.spl.DataSource;
 import cz.cuni.mff.d3s.spl.Formula;
 import cz.cuni.mff.d3s.spl.Result;
-import cz.cuni.mff.d3s.spl.data.readers.RawJsonReader;
+import cz.cuni.mff.d3s.spl.data.readers.RawJsonRevisionReader;
 import cz.cuni.mff.d3s.spl.formula.SplFormula;
 import cz.cuni.mff.d3s.spl.interpretation.WelchTestInterpretation;
 
@@ -57,11 +57,11 @@ public class JmhRawDataTester {
 		for (File file : files) {
 			System.out.printf("Reading data from %s revision...", file.getName());
 
-			DataReader reader = new RawJsonReader();
+			RevisionReader reader = new RawJsonRevisionReader();
 			Map<String, DataSource> revisionData = null;
 			try {
 				revisionData = reader.readRevision(file);
-			} catch (DataReader.ReaderException e) {
+			} catch (RevisionReader.ReaderException e) {
 				e.printStackTrace();
 				System.exit(2);
 			}

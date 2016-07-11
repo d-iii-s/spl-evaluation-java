@@ -21,11 +21,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import cz.cuni.mff.d3s.spl.DataReader;
+import cz.cuni.mff.d3s.spl.data.readers.RevisionReader;
 import cz.cuni.mff.d3s.spl.DataSource;
 import cz.cuni.mff.d3s.spl.Formula;
 import cz.cuni.mff.d3s.spl.Result;
-import cz.cuni.mff.d3s.spl.data.readers.LineOrientedReader;
+import cz.cuni.mff.d3s.spl.data.readers.LineOrientedRevisionReader;
 import cz.cuni.mff.d3s.spl.formula.SplFormula;
 import cz.cuni.mff.d3s.spl.interpretation.WelchTestInterpretation;
 
@@ -62,11 +62,11 @@ public class DirectoryBasedRegressionTester {
 			
 			System.out.printf("Reading data from %s...", dirname);
 
-			DataReader reader = new LineOrientedReader();
+			RevisionReader reader = new LineOrientedRevisionReader();
 			Map<String, DataSource> data = null;
 			try {
 				data = reader.readRevision(dir.listFiles());
-			} catch (DataReader.ReaderException e) {
+			} catch (RevisionReader.ReaderException e) {
 				e.printStackTrace();
 				System.exit(2);
 			}
