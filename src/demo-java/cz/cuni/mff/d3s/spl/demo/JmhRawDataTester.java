@@ -5,7 +5,7 @@ import cz.cuni.mff.d3s.spl.data.readers.RevisionReader;
 import cz.cuni.mff.d3s.spl.DataSource;
 import cz.cuni.mff.d3s.spl.Formula;
 import cz.cuni.mff.d3s.spl.Result;
-import cz.cuni.mff.d3s.spl.data.readers.RawJsonRevisionReader;
+import cz.cuni.mff.d3s.spl.data.readers.JmhJsonRevisionReader;
 import cz.cuni.mff.d3s.spl.formula.SplFormula;
 import cz.cuni.mff.d3s.spl.interpretation.WelchTestInterpretation;
 
@@ -58,7 +58,7 @@ public class JmhRawDataTester {
 		for (File file : files) {
 			System.out.printf("Reading data from %s revision...", file.getName());
 
-			RevisionReader reader = new RawJsonRevisionReader();
+			RevisionReader reader = new JmhJsonRevisionReader();
 			Map<String, DataSource> revisionData = null;
 			try {
 				revisionData = reader.readRevision(file);

@@ -13,7 +13,7 @@ import java.util.Map;
  * Type of data reader.
  */
 enum DataReaderType {
-	RawJson,
+	JmhJson,
 	LineOriented,
 	NumberOriented
 }
@@ -39,7 +39,7 @@ public class Main {
 		Map<String, List<Revision>> data = null;
 
 		try {
-			DataReader reader = getDataReader(DataReaderType.RawJson);
+			DataReader reader = getDataReader(DataReaderType.JmhJson);
 			//DataReader reader = getDataReader(DataReaderType.LineOriented);
 
 			data = reader.readData(args);
@@ -80,8 +80,8 @@ public class Main {
 	 */
 	private static DataReader getDataReader(DataReaderType type) throws DataReader.ReaderException {
 		switch (type) {
-			case RawJson:
-				return new StructuredDataReader<RawJsonRevisionReader>(new RawJsonRevisionReader.RevisionFactory());
+			case JmhJson:
+				return new StructuredDataReader<JmhJsonRevisionReader>(new JmhJsonRevisionReader.RevisionFactory());
 			case LineOriented:
 				return new PlainDataReader<LineOrientedRevisionReader>(new LineOrientedRevisionReader.RevisionFactory());
 			case NumberOriented:

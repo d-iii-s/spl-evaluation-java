@@ -27,7 +27,7 @@ import java.util.Map;
  * the key in the results. Note, that benchmark name must be unique
  * across all provided files!
  */
-public class RawJsonRevisionReader implements RevisionReader {
+public class JmhJsonRevisionReader implements RevisionReader {
 
 	/**
 	 * Read one revision from given files. There are multiple benchmark
@@ -62,16 +62,20 @@ public class RawJsonRevisionReader implements RevisionReader {
 						" at location: " + e.getLocation().toString());
 			} catch (JsonException e) {
 				throw new ReaderException("Json error: " + e.getMessage());
+			} catch (ReaderException e) {
+				throw e;
+			} catch (Throwable e) {
+				throw new ReaderException(e.getMessage());
 			}
 		}
 
 		return result;
 	}
 
-	public static class RevisionFactory implements Factory<RawJsonRevisionReader> {
+	public static class RevisionFactory implements Factory<JmhJsonRevisionReader> {
 		@Override
-		public RawJsonRevisionReader getInstance() {
-			return new RawJsonRevisionReader();
+		public JmhJsonRevisionReader getInstance() {
+			return new JmhJsonRevisionReader();
 		}
 	}
 
@@ -81,33 +85,56 @@ public class RawJsonRevisionReader implements RevisionReader {
 	 * @param benchmark Json object (dictionary) with one benchmark data
 	 * @return Parsed data
 	 */
-	private static Map.Entry<String, DataSource> getBenchmarkData(JsonObject benchmark) {
+	private static Map.Entry<String, DataSource> getBenchmarkData(JsonObject benchmark) throws ReaderException {
 		String benchmarkName = benchmark.getString("benchmark");
 		JsonObject primaryMetric = benchmark.getJsonObject("primaryMetric");
 		JsonArray rawData = primaryMetric.getJsonArray("rawData");
-		DataSource data = parseRawData(rawData);
+		JsonArray rawDataHistogram = primaryMetric.getJsonArray("rawDataHistogram");
+		DataSource data = parseRawData(rawData, rawDataHistogram);
 		return new AbstractMap.SimpleEntry<>(benchmarkName, data);
 	}
 
 	/**
-	 * Parse array of raw data. Each item is list of two values:
-	 * actual number and number of observations of this number.
+	 * Parse array of raw data. Actual data are only in one of the arguments
+	 * array, second array is empty.
 	 *
-	 * @param rawData Json array with raw data representation
+	 * @param rawData Json array with raw data representation, just numbers.
+	 * @param rawDataHistogram Json array with raw data histogram representation,
+	 *                         each item is list of two values: actual number and
+	 *                         number of observations of this number.
 	 * @return Parsed data
 	 */
-	private static DataSource parseRawData(JsonArray rawData) {
+	private static DataSource parseRawData(JsonArray rawData, JsonArray rawDataHistogram) throws ReaderException {
 		BenchmarkRunBuilder run = new BenchmarkRunBuilder();
 
-		// for each sample
-		for (JsonValue sample : rawData) {
-			JsonArray sampleValue = (JsonArray) sample;
+		if (rawDataHistogram.isEmpty()) {
+			// process rawData
 
-			int valueCount = sampleValue.getInt(1);
-			for (int i = 0; i < valueCount; i++) {
-				//run.addSamples((long)value.getJsonNumber(0).doubleValue());
-				run.addSamples(Math.round(sampleValue.getJsonNumber(0).doubleValue()));
+			// for each iteration
+			for (JsonValue iteration : rawData) {
+				// for each value
+				for (JsonValue value : (JsonArray)iteration) {
+					run.addSamples(Math.round(((JsonNumber)value).doubleValue()));
+				}
 			}
+		} else if (rawData.isEmpty()) {
+			// process rawDataHistogram
+
+			// for each iteration
+			for (JsonValue iteration : rawDataHistogram) {
+				// for each sample
+				for (JsonValue sample : (JsonArray)iteration) {
+					JsonArray sampleValue = (JsonArray) sample;
+
+					int valueCount = sampleValue.getInt(1);
+					for (int i = 0; i < valueCount; i++) {
+						run.addSamples(Math.round(sampleValue.getJsonNumber(0).doubleValue()));
+					}
+				}
+			}
+		} else {
+			// corrupted invariant
+			throw new ReaderException("One of \"rawData\" and \"rawDataHistogram\" must be empty, but not both");
 		}
 
 		DataSnapshotBuilder builder = new DataSnapshotBuilder();

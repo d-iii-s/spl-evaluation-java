@@ -78,19 +78,25 @@ public class StructuredDataReader<T extends RevisionReader> implements DataReade
 	 * Compare files by their filesystem modification time. Newer file
 	 * is less than older file.
 	 */
+//	private static class FileComparator implements Comparator<File> {
+//		@Override
+//		public int compare(File x, File y) {
+//			long xModified = x.lastModified();
+//			long yModified = y.lastModified();
+//
+//			if (xModified == yModified) {
+//				return 0;
+//			} else if (xModified > yModified) {
+//				return 1;
+//			} else {
+//				return -1;
+//			}
+//		}
+//	}
 	private static class FileComparator implements Comparator<File> {
 		@Override
 		public int compare(File x, File y) {
-			long xModified = x.lastModified();
-			long yModified = y.lastModified();
-
-			if (xModified == yModified) {
-				return 0;
-			} else if (xModified > yModified) {
-				return 1;
-			} else {
-				return -1;
-			}
+			return x.getName().compareTo(y.getName());
 		}
 	}
 }
