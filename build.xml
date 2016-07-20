@@ -25,7 +25,7 @@
 	
 	<property name="lib.dir" value="lib" />
 	<property name="junit.jar.path" value="${lib.dir}/junit-4.11.jar" />
-	<property name="commons.math.jar.path" value="${lib.dir}/commons-math3-3.5.jar" />
+	<property name="commons.math.jar.path" value="${lib.dir}/commons-math3-3.6.1.jar" />
 	<property name="javax.json.jar.path" value="${lib.dir}/javax.json-1.0.4.jar" />
 	<property name="javacc.home" value="${lib.dir}/javacc-6.0/" />
 	
