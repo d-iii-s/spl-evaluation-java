@@ -33,9 +33,9 @@ public class MannWhitneyInterpretationTest  {
 	private DataSnapshot SNAPSHOT_2;
 	private MannWhitneyInterpretation interpretation;
 	
-	private static final long[] RUN_1 = new long[] {1, 2, 3, 0 };
-	private static final long[] RUN_1_PERM = new long[] {2, 1, 0, 3 };
-	private static final long[] RUN_2 = new long[] {7, 5, 6, 8 };
+	private static final double[] RUN_1 = new double[] {1, 2, 3, 0 };
+	private static final double[] RUN_1_PERM = new double[] {2, 1, 0, 3 };
+	private static final double[] RUN_2 = new double[] {7, 5, 6, 8 };
 	
 	@Before
 	public void prepareSnapshots() {
@@ -49,7 +49,7 @@ public class MannWhitneyInterpretationTest  {
 		interpretation = new MannWhitneyInterpretation();
 	}
 	
-	private DataSnapshot makeSnapshotFromSingleRun(long... samples) {
+	private DataSnapshot makeSnapshotFromSingleRun(double... samples) {
 		BenchmarkRun run = new ImmutableBenchmarkRun(samples);
 		
 		DataSnapshotBuilder builder = new DataSnapshotBuilder();

@@ -44,7 +44,7 @@ public class RingDataSource implements DataSource {
 	}
 	
 	private RingBuffer<BenchmarkRun> runs;
-	private RingBuffer<Long> lastRun;
+	private RingBuffer<Double> lastRun;
 	private int maxSamples;
 	private RingBuffer<DataSnapshotBuilder> epochs;
 	
@@ -93,6 +93,22 @@ public class RingDataSource implements DataSource {
 			lastRun = new RingBuffer<>(maxSamples);
 		}
 		for (long v : values) {
+			lastRun.add((double)v);
+		}
+	}
+
+	/** Add samples to the current run.
+	 *
+	 * <p>
+	 * This method automatically starts a new run if no run was started yet.
+	 *
+	 * @param values Samples values to add.
+	 */
+	public synchronized void addSamples(double... values) {
+		if (lastRun == null) {
+			lastRun = new RingBuffer<>(maxSamples);
+		}
+		for (double v : values) {
 			lastRun.add(v);
 		}
 	}

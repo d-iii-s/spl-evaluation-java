@@ -31,10 +31,10 @@ import cz.cuni.mff.d3s.spl.data.ImmutableBenchmarkRun;
 public class WelchTestWithEnlargedVariancesInterpretationTest {
 	private static final double EPSILON = 0.00001;
 	
-	private static final long[] RUN_1_1 = new long[] {10, 10, 12, 10 };
-	private static final long[] RUN_1_2 = new long[] {10, 12, 9, 10 };
-	private static final long[] RUN_2_1 = new long[] {10, 10, 11, 10 };
-	private static final long[] RUN_2_2 = new long[] {10, 10, 10, 9 };
+	private static final double[] RUN_1_1 = new double[] {10, 10, 12, 10 };
+	private static final double[] RUN_1_2 = new double[] {10, 12, 9, 10 };
+	private static final double[] RUN_2_1 = new double[] {10, 10, 11, 10 };
+	private static final double[] RUN_2_2 = new double[] {10, 10, 10, 9 };
 	
 	private Interpretation interpretation;
 	
@@ -52,9 +52,9 @@ public class WelchTestWithEnlargedVariancesInterpretationTest {
 		interpretation = new WelchTestWithEnlargedVariancesInterpretation();
 	}
 	
-	private DataSnapshot makeSnapshot(long[]... runs) {		
+	private DataSnapshot makeSnapshot(double[]... runs) {
 		DataSnapshotBuilder builder = new DataSnapshotBuilder();
-		for (long[] samples : runs) {
+		for (double[] samples : runs) {
 			BenchmarkRun run = new ImmutableBenchmarkRun(samples);
 			builder.addRun(run);
 		}

@@ -29,7 +29,7 @@ public interface BenchmarkRun {
 	 * 
 	 *  @return All samples in the order they were added.
 	 */
-	Iterable<Long> getSamples();
+	Iterable<Double> getSamples();
 	
 	/** Get number of samples in this run.
 	 * 
@@ -44,5 +44,5 @@ public interface BenchmarkRun {
 	 * @throws IndexOutOfBoundsException When the index is either negative or
 	 * greater or equal to sample count.
 	 */
-	long getSample(int index);
+	double getSample(int index);
 }

@@ -32,8 +32,8 @@ public class WelchTestInterpretationTest  {
 	private static DataSnapshot SNAPSHOT_1;
 	private static DataSnapshot SNAPSHOT_2;
 	
-	private static final long[] RUN_1 = new long[] {1, 2, 1, 1 };
-	private static final long[] RUN_2 = new long[] {5, 5, 6, 5 };
+	private static final double[] RUN_1 = new double[] {1, 2, 1, 1 };
+	private static final double[] RUN_2 = new double[] {5, 5, 6, 5 };
 	
 	@Before
 	public void prepareSnapshots() {
@@ -41,7 +41,7 @@ public class WelchTestInterpretationTest  {
 		SNAPSHOT_2 = makeSnapshotFromSingleRun(RUN_2);
 	}
 	
-	private DataSnapshot makeSnapshotFromSingleRun(long... samples) {
+	private DataSnapshot makeSnapshotFromSingleRun(double... samples) {
 		BenchmarkRun run = new ImmutableBenchmarkRun(samples);
 		
 		DataSnapshotBuilder builder = new DataSnapshotBuilder();

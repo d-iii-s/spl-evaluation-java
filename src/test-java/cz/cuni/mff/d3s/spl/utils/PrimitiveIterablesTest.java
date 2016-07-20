@@ -21,11 +21,11 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 public class PrimitiveIterablesTest {
-	private static void assertIterable(long... values) {
+	private static void assertIterable(double... values) {
 		int index = 0;
-		for (Long value : PrimitiveIterables.makeIterable(values)) {
+		for (Double value : PrimitiveIterables.makeIterable(values)) {
 			assertTrue("Iterable has more elements", index < values.length);
-			assertEquals(values[index], value.longValue());
+			assertEquals(values[index], value.longValue(), 0.0001);
 			index++;
 		}
 		assertTrue("Iterable does not have all elements", index == values.length);

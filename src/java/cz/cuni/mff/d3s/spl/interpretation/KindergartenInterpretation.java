@@ -95,7 +95,7 @@ public class KindergartenInterpretation implements Interpretation {
 		double sum = 0;
 		long count = 0;
 		for (BenchmarkRun run : data.getRuns()) {
-			for (long sample : run.getSamples()) {
+			for (double sample : run.getSamples()) {
 				sum += sample;
 				count++;
 			}

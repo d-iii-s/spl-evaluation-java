@@ -28,26 +28,26 @@ import cz.cuni.mff.d3s.spl.DataSnapshot;
 
 @Ignore
 public class TestUtils {
-	private static final Long[] LONG_ARRAY_TYPE = new Long[0];
+	private static final Double[] DOUBLE_ARRAY_TYPE = new Double[0];
 	
-	public static void assertBenchmarkRun(BenchmarkRun run, long... samples) {
-		List<Long> actual = new ArrayList<>(samples.length);
-		for (Long s : run.getSamples()) {
+	public static void assertBenchmarkRun(BenchmarkRun run, double... samples) {
+		List<Double> actual = new ArrayList<>(samples.length);
+		for (Double s : run.getSamples()) {
 			actual.add(s);
 		}
 		
-		Long[] expected = new Long[samples.length];
+		Double[] expected = new Double[samples.length];
 		for (int i = 0; i < samples.length; i++) {
 			expected[i] = samples[i];
 		}
 		
-		assertArrayEquals(expected, actual.toArray(LONG_ARRAY_TYPE)); 
+		assertArrayEquals(expected, actual.toArray(DOUBLE_ARRAY_TYPE));
 	}
 	
-	public static void assertDataSnapshot(DataSnapshot snapshot, long[][] allSamples) {
+	public static void assertDataSnapshot(DataSnapshot snapshot, double[][] allSamples) {
 		int runIndex = 0;
 
-		for (long[] samples : allSamples) {
+		for (double[] samples : allSamples) {
 			if (samples == null) {
 				/* Look into history. */
 				assertEquals(runIndex, snapshot.getRunCount());

@@ -25,7 +25,7 @@ import cz.cuni.mff.d3s.spl.BenchmarkRun;
  *
  */
 public class BenchmarkRunBuilder {
-	private final List<Long> samples = new LinkedList<>();
+	private final List<Double> samples = new LinkedList<>();
 	
 	public BenchmarkRunBuilder() {
 	}
@@ -44,8 +44,15 @@ public class BenchmarkRunBuilder {
 	
 	public synchronized BenchmarkRunBuilder addSamples(long... values) {
 		for (long v : values) {
+			samples.add((double)v);
+		}
+		return this;
+	}
+
+	public synchronized BenchmarkRunBuilder addSamples(double... values) {
+		for (double v : values) {
 			samples.add(v);
 		}
 		return this;
-	}	
+	}
 }

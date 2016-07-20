@@ -22,20 +22,20 @@ import java.util.Iterator;
  */
 public class PrimitiveIterables {
 	
-	public static Iterable<Long> makeIterable(final long[] array) {
-		return new Iterable<Long>() {
+	public static Iterable<Double> makeIterable(final double[] array) {
+		return new Iterable<Double>() {
 			@Override
-			public Iterator<Long> iterator() {
+			public Iterator<Double> iterator() {
 				return new LongIterator(array);
 			}
 		};
 	}
 	
-	private static class LongIterator implements Iterator<Long> {
-		private final long[] array;
+	private static class LongIterator implements Iterator<Double> {
+		private final double[] array;
 		private int index;
 		
-		public LongIterator(final long[] data) {
+		public LongIterator(final double[] data) {
 			array = data;
 			index = 0;
 		}
@@ -46,7 +46,7 @@ public class PrimitiveIterables {
 		}
 
 		@Override
-		public Long next() {
+		public Double next() {
 			return array[index++];
 		}
 		

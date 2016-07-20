@@ -175,8 +175,8 @@ public class SensitivityComparison {
 			for (BenchmarkRun run : data.getRuns()) {
 				BenchmarkRunBuilder builder = new BenchmarkRunBuilder();
 				
-				for (long sample : run.getSamples()) {
-					builder.addSamples(Math.round((double)sample * coef));
+				for (double sample : run.getSamples()) {
+					builder.addSamples(Math.round(sample * coef));
 				}
 				
 				snapshotBuilder.addRun(builder.create());
