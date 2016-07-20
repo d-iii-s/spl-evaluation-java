@@ -114,7 +114,7 @@ public class JmhJsonRevisionReader implements RevisionReader {
 			for (JsonValue iteration : rawData) {
 				// for each value
 				for (JsonValue value : (JsonArray)iteration) {
-					run.addSamples(Math.round(((JsonNumber)value).doubleValue()));
+					run.addSamples(((JsonNumber)value).doubleValue());
 				}
 			}
 		} else if (rawData.isEmpty()) {
@@ -128,7 +128,7 @@ public class JmhJsonRevisionReader implements RevisionReader {
 
 					int valueCount = sampleValue.getInt(1);
 					for (int i = 0; i < valueCount; i++) {
-						run.addSamples(Math.round(sampleValue.getJsonNumber(0).doubleValue()));
+						run.addSamples(sampleValue.getJsonNumber(0).doubleValue());
 					}
 				}
 			}
