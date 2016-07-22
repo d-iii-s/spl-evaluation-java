@@ -88,15 +88,20 @@ public class JmhJsonRevisionReader implements RevisionReader {
 	private static Map.Entry<String, DataSource> getBenchmarkData(JsonObject benchmark) throws ReaderException {
 		String benchmarkName = benchmark.getString("benchmark");
 		JsonObject primaryMetric = benchmark.getJsonObject("primaryMetric");
-		JsonArray rawData = primaryMetric.getJsonArray("rawData");
-		JsonArray rawDataHistogram = primaryMetric.getJsonArray("rawDataHistogram");
+		JsonArray rawData = null;
+		JsonArray rawDataHistogram = null;
+		if (primaryMetric.containsKey("rawData")) {
+			rawData = primaryMetric.getJsonArray("rawData");
+		} else if (primaryMetric.containsKey("rawDataHistogram")) {
+			rawDataHistogram = primaryMetric.getJsonArray("rawDataHistogram");
+		}
 		DataSource data = parseRawData(rawData, rawDataHistogram);
 		return new AbstractMap.SimpleEntry<>(benchmarkName, data);
 	}
 
 	/**
 	 * Parse array of raw data. Actual data are only in one of the arguments
-	 * array, second array is empty.
+	 * array, second array is null value.
 	 *
 	 * @param rawData Json array with raw data representation, just numbers.
 	 * @param rawDataHistogram Json array with raw data histogram representation,
@@ -107,28 +112,31 @@ public class JmhJsonRevisionReader implements RevisionReader {
 	private static DataSource parseRawData(JsonArray rawData, JsonArray rawDataHistogram) throws ReaderException {
 		BenchmarkRunBuilder run = new BenchmarkRunBuilder();
 
-		if (rawDataHistogram.isEmpty()) {
+		if (rawData != null) {
 			// process rawData
 
-			// for each iteration
-			for (JsonValue iteration : rawData) {
-				// for each value
-				for (JsonValue value : (JsonArray)iteration) {
+			// for each fork
+			for (JsonValue fork : rawData) {
+				// for each iteration value
+				for (JsonValue value : (JsonArray)fork) {
 					run.addSamples(((JsonNumber)value).doubleValue());
 				}
 			}
-		} else if (rawData.isEmpty()) {
+		} else if (rawDataHistogram != null) {
 			// process rawDataHistogram
 
-			// for each iteration
-			for (JsonValue iteration : rawDataHistogram) {
-				// for each sample
-				for (JsonValue sample : (JsonArray)iteration) {
-					JsonArray sampleValue = (JsonArray) sample;
+			// for each fork
+			for (JsonValue fork : rawDataHistogram) {
+				// for each iteration
+				for (JsonValue iteration : (JsonArray)fork) {
+					// for each sample
+					for (JsonValue sample : (JsonArray)iteration) {
+						JsonArray sampleValue = (JsonArray)sample;
 
-					int valueCount = sampleValue.getInt(1);
-					for (int i = 0; i < valueCount; i++) {
-						run.addSamples(sampleValue.getJsonNumber(0).doubleValue());
+						int valueCount = sampleValue.getInt(1);
+						for (int i = 0; i < valueCount; i++) {
+							run.addSamples(sampleValue.getJsonNumber(0).doubleValue());
+						}
 					}
 				}
 			}
