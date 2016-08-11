@@ -31,10 +31,10 @@ public class Main {
 			String[] cmdFormulas = line.getOptionValues("commandline-formulas");
 			String dataDir = line.getOptionValue("data-dir");
 			String revisionMapping = line.getOptionValue("revision-mapping");
-			boolean printUnknown = line.hasOption("print-unknown");
+			boolean printUnknownOnly = line.hasOption("print-unknown");
 
 			if (jarFormulas == null && fileFormulas == null && cmdFormulas == null) {
-				System.err.println("You must specify one of -j, -f, -c options!");
+				System.err.println("You must specify one of -j, -f, -c options.");
 				printHelp(options);
 				return;
 			}
@@ -48,9 +48,9 @@ public class Main {
 			readCommandlineFormulas(formulas, cmdFormulas);
 
 			// Get custom mapping of revisions form file.
-			Map<String, String> revisions = getRevisions(revisionMapping);
+			Map<String, String> customRevisionMap = getCustomRevisionMapping(revisionMapping);
 
-			DataReader reader = new StructuredDataReader<JmhJsonRevisionReader>(new JmhJsonRevisionReader.RevisionFactory());
+			DataReader reader = new StructuredDataReader<>(new JmhJsonRevisionReader.RevisionFactory());
 			Map<String, List<Revision>> data = reader.readData(new String[] {dataDir});
 
 			for (Map.Entry<String, List<Revision>> benchmarkItem : data.entrySet()) {
@@ -74,8 +74,8 @@ public class Main {
 						formula.bind(variable, revisionMap.get(variable));
 					}
 					// else try to find another revision is custom mapping
-					else if (revisions.containsKey(variable)) {
-						formula.bind(variable, revisionMap.get(revisions.get(variable)));
+					else if (customRevisionMap.containsKey(variable)) {
+						formula.bind(variable, revisionMap.get(customRevisionMap.get(variable)));
 					}
 					// else there is no such revision
 					else {
@@ -84,7 +84,7 @@ public class Main {
 				}
 
 				// if we want only get missing versions, skip formula evaluating
-				if (!printUnknown) {
+				if (!printUnknownOnly) {
 					Result result = formula.evaluate(SIGNIFICANCE_LEVEL);
 					System.out.printf("Benchmark: %s, formula: %s, result: %s\n", benchmarkName, formulaString, result);
 				}
@@ -119,7 +119,7 @@ public class Main {
 			}
 			parseStringsIntoMap(lines, formulas);
 		} catch (IOException e){
-			e.printStackTrace();
+			System.err.println("Cannot read SPL formulas from JAR, assuming no formulas.");
 		}
 	}
 
@@ -142,11 +142,17 @@ public class Main {
 
 	private static void parseStringsIntoMap(String[] data, Map<String, String> output) {
 		for (String line : data) {
+			// skip empty lines and comments
 			if (line.equals("") || line.startsWith("#")) {
 				continue;
 			}
 			String[] parsed = line.split(":");
-			output.put(parsed[0], parsed[1]);
+			if (parsed.length == 2) {
+				// save only well formed lines
+				output.put(parsed[0], parsed[1]);
+			} else {
+				System.err.println("Malformed line '" + line + "'. Exactly one ':' expected.");
+			}
 		}
 	}
 
@@ -154,7 +160,7 @@ public class Main {
 		parseStringsIntoMap(data.toArray(new String[] {}), output);
 	}
 
-	private static Map<String, String> getRevisions(String revisionsMappingFile) {
+	private static Map<String, String> getCustomRevisionMapping(String revisionsMappingFile) {
 		List<String> lines;
 		try {
 			lines = Files.readAllLines(Paths.get(revisionsMappingFile), StandardCharsets.UTF_8);
