@@ -55,13 +55,20 @@ public class Main {
 
 			for (Map.Entry<String, List<Revision>> benchmarkItem : data.entrySet()) {
 				String benchmarkName = benchmarkItem.getKey();
+				String formulaString = null;
 
-				if (!formulas.containsKey(benchmarkName)) {
+				if (formulas.containsKey("*")) {
+					formulaString = formulas.get("*");
+				}
+				if (formulas.containsKey(benchmarkName)) {
+					formulaString = formulas.get(benchmarkName);
+				}
+
+				if (formulaString == null) {
 					System.out.println("Skipping benchmark without formula: " + benchmarkItem.getKey());
 					continue;
 				}
 
-				String formulaString = formulas.get(benchmarkName);
 				Formula formula = SplFormula.create(formulaString);
 				formula.setInterpretation(new WelchTestInterpretation());
 
@@ -107,19 +114,21 @@ public class Main {
 	}
 
 	private static void readJarFormulas(Map<String, String> formulas, String jarFormulas) {
-		try {
-			File jarFile = new File(jarFormulas);
-			URL url = new URL("jar:file:" + jarFile.getAbsolutePath() + "!/META-INF/SPLFormulas");
-			InputStream is = url.openStream();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-			String line;
-			List<String> lines = new ArrayList<>();
-			while ((line = reader.readLine()) != null) {
-				lines.add(line);
+		if (jarFormulas != null) {
+			try {
+				File jarFile = new File(jarFormulas);
+				URL url = new URL("jar:file:" + jarFile.getAbsolutePath() + "!/META-INF/SPLFormulas");
+				InputStream is = url.openStream();
+				BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+				String line;
+				List<String> lines = new ArrayList<>();
+				while ((line = reader.readLine()) != null) {
+					lines.add(line);
+				}
+				parseStringsIntoMap(lines, formulas);
+			} catch (IOException | NullPointerException e) {
+				System.err.println("Cannot read SPL formulas from JAR, assuming no formulas.");
 			}
-			parseStringsIntoMap(lines, formulas);
-		} catch (IOException e){
-			System.err.println("Cannot read SPL formulas from JAR, assuming no formulas.");
 		}
 	}
 
