@@ -50,7 +50,10 @@ public class JmhJsonRevisionReader implements RevisionReader {
 				for (JsonValue benchmark : benchmarks) {
 					Map.Entry<String, DataSource> benchmarkData = getBenchmarkData((JsonObject) benchmark);
 					if (result.containsKey(benchmarkData.getKey())) {
-						throw new ReaderException("Duplicate benchmark key: " + benchmarkData.getKey());
+						//throw new ReaderException("Duplicate benchmark key: " + benchmarkData.getKey());
+						DataSource mergedData = mergeBenchmarkData(benchmarkData.getValue(),
+								result.get(benchmarkData.getKey()));
+						result.put(benchmarkData.getKey(), mergedData);
 					}
 					result.put(benchmarkData.getKey(), benchmarkData.getValue());
 				}
@@ -72,6 +75,20 @@ public class JmhJsonRevisionReader implements RevisionReader {
 		return result;
 	}
 
+	private DataSource mergeBenchmarkData(DataSource oldValue, DataSource newValue) {
+		BenchmarkRunBuilder run = new BenchmarkRunBuilder();
+		DataSnapshotBuilder builder = new DataSnapshotBuilder();
+		BenchmarkRun benchmarkRun = run.create();
+		for (int i = 0; i < oldValue.makeSnapshot().getRunCount(); i++) {
+			builder.addRun(oldValue.makeSnapshot().getRun(i));
+		}
+		for (int i = 0; i < newValue.makeSnapshot().getRunCount(); i++) {
+			builder.addRun(newValue.makeSnapshot().getRun(i));
+		}
+
+		return new BuilderDataSource(builder);
+	}
+
 	public static class RevisionFactory implements Factory<JmhJsonRevisionReader> {
 		@Override
 		public JmhJsonRevisionReader getInstance() {
@@ -87,6 +104,13 @@ public class JmhJsonRevisionReader implements RevisionReader {
 	 */
 	private static Map.Entry<String, DataSource> getBenchmarkData(JsonObject benchmark) throws ReaderException {
 		String benchmarkName = benchmark.getString("benchmark");
+		String benchmarkMode = benchmark.getString("mode");
+		String benchmarkParams = "";
+		if (benchmark.containsKey("params")) {
+			benchmarkParams = getBenchmarkParams(benchmark.getJsonObject("params"));
+		}
+		String benchmarkEntryKey = String.format("%s@%s%s", benchmarkName, benchmarkMode, benchmarkParams);
+
 		JsonObject primaryMetric = benchmark.getJsonObject("primaryMetric");
 		JsonArray rawData = null;
 		JsonArray rawDataHistogram = null;
@@ -96,7 +120,25 @@ public class JmhJsonRevisionReader implements RevisionReader {
 			rawDataHistogram = primaryMetric.getJsonArray("rawDataHistogram");
 		}
 		DataSource data = parseRawData(rawData, rawDataHistogram);
-		return new AbstractMap.SimpleEntry<>(benchmarkName, data);
+		return new AbstractMap.SimpleEntry<>(benchmarkEntryKey, data);
+	}
+
+	/**
+	 * Get params with which the benchmark was run.
+	 *
+	 * @param params Json object containing all params (the "params" key from JMH json)
+	 * @return Params with format "@par1=val1@par2=val2"
+	 */
+	private static String getBenchmarkParams(JsonObject params) {
+		StringBuilder result = new StringBuilder();
+		for (String item : params.keySet()) {
+			String value = params.getString(item);
+			result.append("@");
+			result.append(item);
+			result.append("=");
+			result.append(value);
+		}
+		return result.toString();
 	}
 
 	/**

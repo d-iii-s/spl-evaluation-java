@@ -60,6 +60,12 @@ public class Main {
 				if (formulas.containsKey("*")) {
 					formulaString = formulas.get("*");
 				}
+
+				String benchmarkBasename = benchmarkName.substring(0, benchmarkName.indexOf('@'));
+				if (formulas.containsKey(benchmarkBasename)) {
+					formulaString = formulas.get(benchmarkBasename);
+				}
+
 				if (formulas.containsKey(benchmarkName)) {
 					formulaString = formulas.get(benchmarkName);
 				}
