@@ -57,15 +57,18 @@ public class Main {
 				String benchmarkName = benchmarkItem.getKey();
 				String formulaString = null;
 
+				// Wildcard method identifier for all methods
 				if (formulas.containsKey("*")) {
 					formulaString = formulas.get("*");
 				}
 
+				// Method fully qualified name without additional params
 				String benchmarkBasename = benchmarkName.substring(0, benchmarkName.indexOf('@'));
 				if (formulas.containsKey(benchmarkBasename)) {
 					formulaString = formulas.get(benchmarkBasename);
 				}
 
+				// Method fully qualified name including additional info like measurement mode or execution params
 				if (formulas.containsKey(benchmarkName)) {
 					formulaString = formulas.get(benchmarkName);
 				}
@@ -80,6 +83,7 @@ public class Main {
 
 				// get benchmark's revisions in better format for us
 				Map<String, DataSource> revisionMap = getRevisionMap(benchmarkItem.getValue());
+				boolean isUnknown = false;
 				// Bind variables to formula (according to revisions collection)
 				for (String variable : formula.getVariables()) {
 					// try if there is real revision of that name
@@ -92,12 +96,15 @@ public class Main {
 					}
 					// else there is no such revision
 					else {
-						System.out.printf("Benchmark: %s, unknown version: %s\n", benchmarkName, variable);
+						System.out.printf("Benchmark: %s, formula: %s, unknown version: %s\n", benchmarkName,
+								formulaString, variable);
+						isUnknown = true;
 					}
 				}
 
 				// if we want only get missing versions, skip formula evaluating
-				if (!printUnknownOnly) {
+				// (or if there are some missing ones, evaluation make no sense)
+				if (!printUnknownOnly && !isUnknown) {
 					Result result = formula.evaluate(SIGNIFICANCE_LEVEL);
 					System.out.printf("Benchmark: %s, formula: %s, result: %s\n", benchmarkName, formulaString, result);
 				}

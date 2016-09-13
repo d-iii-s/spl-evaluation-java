@@ -76,9 +76,8 @@ public class JmhJsonRevisionReader implements RevisionReader {
 	}
 
 	private DataSource mergeBenchmarkData(DataSource oldValue, DataSource newValue) {
-		BenchmarkRunBuilder run = new BenchmarkRunBuilder();
 		DataSnapshotBuilder builder = new DataSnapshotBuilder();
-		BenchmarkRun benchmarkRun = run.create();
+
 		for (int i = 0; i < oldValue.makeSnapshot().getRunCount(); i++) {
 			builder.addRun(oldValue.makeSnapshot().getRun(i));
 		}
