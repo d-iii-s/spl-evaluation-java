@@ -33,12 +33,6 @@ public class Main {
 			String revisionMapping = line.getOptionValue("revision-mapping");
 			boolean printUnknownOnly = line.hasOption("print-unknown");
 
-			if (jarFormulas == null && fileFormulas == null && cmdFormulas == null) {
-				System.err.println("You must specify one of -j, -f, -c options.");
-				printHelp(options);
-				return;
-			}
-
 			// Formulas are processed in order jar, file and command line.
 			// Latter options have higher priority and will override previous values.
 			// Pair of FQ benchmark name and corresponding SPL formula.
