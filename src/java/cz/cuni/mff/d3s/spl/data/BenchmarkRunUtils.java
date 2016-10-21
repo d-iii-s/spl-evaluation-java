@@ -36,6 +36,10 @@ public class BenchmarkRunUtils  {
 		public double reduce(BenchmarkRun run);
 	}
 	
+	public static interface Transformer {
+		public long apply(long sample);
+	}
+	
 	/** Compute mean of a run. */
 	protected static class MeanReducer implements Reducer {
 		/** {@inheritDoc} */
@@ -129,5 +133,13 @@ public class BenchmarkRunUtils  {
 		}
 		
 		return result;
+	}
+	
+	public static BenchmarkRun transform(final BenchmarkRun run, Transformer transformer) {
+		BenchmarkRunBuilder builder = new BenchmarkRunBuilder();
+		for (long sample : run.getSamples()) {
+			builder.addSamples(transformer.apply(sample));
+		}
+		return builder.create();
 	}
 }

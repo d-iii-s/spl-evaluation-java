@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import cz.cuni.mff.d3s.spl.BenchmarkRun;
@@ -30,6 +31,8 @@ import cz.cuni.mff.d3s.spl.tests.TestUtils;
 
 public class BenchmarkRunUtilsTest {
 	private static final Iterable<BenchmarkRun> NO_RUNS = new ArrayList<BenchmarkRun>();
+	
+	private static final BenchmarkRun SIMPLE_RUN = new ImmutableBenchmarkRun(2, 0, 1, 5);
 	
 	private static final BenchmarkRun[] RUNS_ARRAY = new BenchmarkRun[] {
 		new ImmutableBenchmarkRun(0, 1, 2),
@@ -66,5 +69,28 @@ public class BenchmarkRunUtilsTest {
 	public void varianceReducer() {
 		Collection<Double> vars = BenchmarkRunUtils.reduce(RUNS_COLLECTION, BenchmarkRunUtils.VARIANCE);
 		assertEquals(Arrays.asList((Double) 1., 9., 169.), vars);
+	}
+	
+	@Ignore
+	private static class SampleMultiplier implements BenchmarkRunUtils.Transformer {
+		private final long mult;
+		
+		public SampleMultiplier(int multiplier) {
+			mult = multiplier;
+		}
+
+		@Override
+		public long apply(long sample) {
+			return sample * mult;
+		}
+	}
+	
+	@Test
+	public void testTransformer() {
+		SampleMultiplier multiplier = new SampleMultiplier(2);
+		BenchmarkRun result = BenchmarkRunUtils.transform(SIMPLE_RUN, multiplier);
+		
+		TestUtils.assertBenchmarkRun(SIMPLE_RUN, 2, 0, 1, 5);
+		TestUtils.assertBenchmarkRun(result, 4, 0, 2, 10);
 	}
 }
