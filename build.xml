@@ -96,6 +96,14 @@
 			<compilerarg value="-Xlint:all"/>
 		</javac>
 	</target>
+    
+    <target name="jar-lib" depends="compile">
+        <mkdir dir="${jar.build.dir}" />
+        <jar destfile="${jar.build.dir}/spl-evaluation.jar">
+            <zipgroupfileset file="${commons.math.jar.path}" />
+            <fileset dir="${classes.build.dir}" />
+        </jar>
+    </target>
 	
 	<target name="jar-demos-self-contained" depends="compile-demos">
 		<mkdir dir="${jar.build.dir}" />
