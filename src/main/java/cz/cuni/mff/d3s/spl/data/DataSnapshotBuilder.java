@@ -28,7 +28,7 @@ import cz.cuni.mff.d3s.spl.DataSnapshot;
  *
  */
 public class DataSnapshotBuilder {
-	private List<BenchmarkRun> runs = new LinkedList<>();
+	private final List<BenchmarkRun> runs = new LinkedList<>();
 	private DataSnapshot prevEpoch = null;
 		
 	public DataSnapshotBuilder() {
@@ -38,24 +38,28 @@ public class DataSnapshotBuilder {
 		return new Snapshot(runs, prevEpoch);
 	}
 	
-	public synchronized DataSnapshotBuilder setPreviousEpoch(DataSnapshot snapshot) {
+	public synchronized DataSnapshotBuilder setPreviousEpoch(final DataSnapshot snapshot) {
 		prevEpoch = snapshot;
 		return this;
 	}
 	
-	public synchronized DataSnapshotBuilder addRun(BenchmarkRun run) {
+	public synchronized DataSnapshotBuilder addRun(final BenchmarkRun run) {
 		runs.add(new ImmutableBenchmarkRun(run));
 		return this;
 	}
 	
+	public synchronized List<BenchmarkRun> getRuns(){
+		return runs;
+	}
+	
 	private static class Snapshot implements DataSnapshot {
 		private List<BenchmarkRun> runs;
-		private DataSnapshot prevEpoch;
+		private final DataSnapshot prevEpoch;
 		
-		public Snapshot(List<BenchmarkRun> data, DataSnapshot prev) {
+		public Snapshot(final List<BenchmarkRun> data, final DataSnapshot prev) {
 			synchronized (data) {
 				runs = new ArrayList<>(data.size());
-				for (BenchmarkRun run : data) {
+				for (final BenchmarkRun run : data) {
 					runs.add(run);
 				}
 			}
@@ -68,7 +72,7 @@ public class DataSnapshotBuilder {
 		}
 
 		@Override
-		public BenchmarkRun getRun(int index) {
+		public BenchmarkRun getRun(final int index) {
 			return runs.get(index);
 		}
 
