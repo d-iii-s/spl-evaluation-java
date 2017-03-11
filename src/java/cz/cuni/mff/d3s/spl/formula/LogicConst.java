@@ -16,7 +16,9 @@
  */
 package cz.cuni.mff.d3s.spl.formula;
 
+import java.util.HashSet;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 import cz.cuni.mff.d3s.spl.DataSource;
 import cz.cuni.mff.d3s.spl.Formula;
@@ -51,7 +53,12 @@ public final class LogicConst implements Formula {
 	public Result evaluate(double significanceLevel) {
 		return evaluationResult;
 	}
-	
+
+	@Override
+	public Set<String> getVariables() {
+		return new HashSet<>();
+	}
+
 	@Override
 	public String toString() {
 		switch (evaluationResult) {

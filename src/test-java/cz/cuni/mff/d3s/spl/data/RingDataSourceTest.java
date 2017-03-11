@@ -29,21 +29,21 @@ public class RingDataSourceTest {
 		src.startRun();
 		src.addSamples(5);
 		
-		TestUtils.assertDataSnapshot(src.makeSnapshot(), new long[][] {
-			new long[] { 5 }
+		TestUtils.assertDataSnapshot(src.makeSnapshot(), new double[][] {
+			new double[] { 5 }
 		});
 		
 		src.addSamples(6, 7, 8);
 		
-		TestUtils.assertDataSnapshot(src.makeSnapshot(), new long[][] {
-			new long[] { 8 }
+		TestUtils.assertDataSnapshot(src.makeSnapshot(), new double[][] {
+			new double[] { 8 }
 		});
 		
 		src.startRun();
 		src.addSamples(9, 10, 11);
 		
-		TestUtils.assertDataSnapshot(src.makeSnapshot(), new long[][] {
-			new long[] { 11 }
+		TestUtils.assertDataSnapshot(src.makeSnapshot(), new double[][] {
+			new double[] { 11 }
 		});
 	}
 	
@@ -54,21 +54,21 @@ public class RingDataSourceTest {
 		src.startRun();
 		src.addSamples(5);
 		
-		TestUtils.assertDataSnapshot(src.makeSnapshot(), new long[][] {
-			new long[] { 5 }
+		TestUtils.assertDataSnapshot(src.makeSnapshot(), new double[][] {
+			new double[] { 5 }
 		});
 		
 		src.addSamples(6, 7, 8);
 		
-		TestUtils.assertDataSnapshot(src.makeSnapshot(), new long[][] {
-			new long[] { 5, 6, 7, 8 }
+		TestUtils.assertDataSnapshot(src.makeSnapshot(), new double[][] {
+			new double[] { 5, 6, 7, 8 }
 		});
 		
 		src.startRun();
 		src.addSamples(9, 10, 11);
 		
-		TestUtils.assertDataSnapshot(src.makeSnapshot(), new long[][] {
-			new long[] { 9, 10, 11 }
+		TestUtils.assertDataSnapshot(src.makeSnapshot(), new double[][] {
+			new double[] { 9, 10, 11 }
 		});
 	}
 	
@@ -79,30 +79,30 @@ public class RingDataSourceTest {
 		src.startRun();
 		src.addSamples(5);
 		
-		TestUtils.assertDataSnapshot(src.makeSnapshot(), new long[][] {
-			new long[] { 5 }
+		TestUtils.assertDataSnapshot(src.makeSnapshot(), new double[][] {
+			new double[] { 5 }
 		});
 		
 		src.addSamples(6, 7, 8);
 		
-		TestUtils.assertDataSnapshot(src.makeSnapshot(), new long[][] {
-			new long[] { 5, 6, 7, 8 }
+		TestUtils.assertDataSnapshot(src.makeSnapshot(), new double[][] {
+			new double[] { 5, 6, 7, 8 }
 		});
 		
 		src.startRun();
 		src.addSamples(9, 10, 11);
 		
-		TestUtils.assertDataSnapshot(src.makeSnapshot(), new long[][] {
-			new long[] { 5, 6, 7, 8 },
-			new long[] { 9, 10, 11 }
+		TestUtils.assertDataSnapshot(src.makeSnapshot(), new double[][] {
+			new double[] { 5, 6, 7, 8 },
+			new double[] { 9, 10, 11 }
 		});
 		
 		src.startRun();
 		src.addSamples(12, 13);
 		
-		TestUtils.assertDataSnapshot(src.makeSnapshot(), new long[][] {
-			new long[] { 9, 10, 11 },
-			new long[] { 12, 13 }
+		TestUtils.assertDataSnapshot(src.makeSnapshot(), new double[][] {
+			new double[] { 9, 10, 11 },
+			new double[] { 12, 13 }
 		});
 	}
 	
@@ -113,8 +113,8 @@ public class RingDataSourceTest {
 		src.startRun();
 		src.addSamples(5, 10);
 		
-		TestUtils.assertDataSnapshot(src.makeSnapshot(), new long[][] {
-			new long[] { 5, 10 }
+		TestUtils.assertDataSnapshot(src.makeSnapshot(), new double[][] {
+			new double[] { 5, 10 }
 		});
 		
 		src.startRun();
@@ -123,9 +123,9 @@ public class RingDataSourceTest {
 		src.startRun();
 		src.addSamples(14, 16, 18, 20);
 		
-		TestUtils.assertDataSnapshot(src.makeSnapshot(), new long[][] {
-			new long[] { 11, 12, 13 },
-			new long[] { 14, 16, 18, 20 }
+		TestUtils.assertDataSnapshot(src.makeSnapshot(), new double[][] {
+			new double[] { 11, 12, 13 },
+			new double[] { 14, 16, 18, 20 }
 		});
 		
 		src.startEpoch();
@@ -139,12 +139,12 @@ public class RingDataSourceTest {
 		src.startRun();
 		src.addSamples(25, 27, 29);
 		
-		TestUtils.assertDataSnapshot(src.makeSnapshot(), new long[][] {
-			new long[] { 23, 24 },
-			new long[] { 25, 27, 29 },
+		TestUtils.assertDataSnapshot(src.makeSnapshot(), new double[][] {
+			new double[] { 23, 24 },
+			new double[] { 25, 27, 29 },
 			null,
-			new long[] { 11, 12, 13 },
-			new long[] { 14, 16, 18, 20 }
+			new double[] { 11, 12, 13 },
+			new double[] { 14, 16, 18, 20 }
 		});
 	}
 }

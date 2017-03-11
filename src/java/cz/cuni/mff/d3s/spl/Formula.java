@@ -16,6 +16,8 @@
  */
 package cz.cuni.mff.d3s.spl;
 
+import java.util.Set;
+
 /** SPL formula.
  * 
  * It is up to implementing classes to construct the actual formula
@@ -56,4 +58,10 @@ public interface Formula {
 	 * @return Whether the formula evaluates to true.
 	 */
 	Result evaluate(double significanceLevel);
+
+	/** Get set of variables, which needs to be bound before evaluation.
+	 *
+	 * @return Set of variables inside formula.
+	 */
+	Set<String> getVariables();
 }

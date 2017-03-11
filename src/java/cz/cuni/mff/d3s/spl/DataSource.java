@@ -23,10 +23,25 @@ package cz.cuni.mff.d3s.spl;
  * makeSnapshot() call.
  */
 public interface DataSource {
+
 	/** Get consistent view on this data source.
 	 * 
 	 * @return Immutable snapshot of the data.
 	 */
 	DataSnapshot makeSnapshot();
+
+	/** Get consistent view on this data source.
+	 *
+	 * @param skip Skip this number of samples from the beginning.
+	 * @return Immutable snapshot of the data.
+	 */
+	DataSnapshot makeSnapshot(int skip);
+
+	/** Get consistent view on this data source.
+	 *
+	 * @param skip Skip this percentage of samples from the beginning.
+	 * @return Immutable snapshot of the data.
+	 */
+	DataSnapshot makeSnapshot(double skip);
 }
 

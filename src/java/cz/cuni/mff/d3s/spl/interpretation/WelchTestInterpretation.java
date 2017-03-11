@@ -87,7 +87,8 @@ public class WelchTestInterpretation implements Interpretation {
 	}
 
 	private double nuHelper(double var, long n) {
-		return (var * var) / (n * n * (n - 1));
+		//return (var * var) / (n * n * (n - 1));
+		return (var / n) * (var / n) / (n - 1);
 	}
 		
 	private double square(double x) {

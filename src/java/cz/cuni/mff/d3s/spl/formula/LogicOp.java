@@ -16,7 +16,9 @@
  */
 package cz.cuni.mff.d3s.spl.formula;
 
+import java.util.HashSet;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 import cz.cuni.mff.d3s.spl.DataSource;
 import cz.cuni.mff.d3s.spl.Formula;
@@ -29,10 +31,14 @@ import cz.cuni.mff.d3s.spl.Result;
 abstract class LogicOp implements Formula {
 	protected Formula left;
 	protected Formula right;
+	protected Set<String> variables;
 	
 	public LogicOp(Formula left, Formula right) {
 		this.left = left;
 		this.right = right;
+		variables = new HashSet<>();
+		variables.addAll(left.getVariables());
+		variables.addAll(right.getVariables());
 	}
 
 	@Override
@@ -67,4 +73,9 @@ abstract class LogicOp implements Formula {
 	
 	@Override
 	abstract public Result evaluate(double significanceLevel);
+
+	@Override
+	public Set<String> getVariables() {
+		return null;
+	}
 }

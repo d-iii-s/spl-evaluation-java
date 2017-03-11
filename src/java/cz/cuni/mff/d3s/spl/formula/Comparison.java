@@ -16,7 +16,9 @@
  */
 package cz.cuni.mff.d3s.spl.formula;
 
+import java.util.HashSet;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 import cz.cuni.mff.d3s.spl.ComparisonResult;
 import cz.cuni.mff.d3s.spl.ComparisonResult.Relation;
@@ -57,11 +59,15 @@ public class Comparison implements Formula {
 	private NamedDataSource right;
 	private Operator operator;
 	private Interpretation interpretation;
+	private Set<String> variables;
 	
 	public Comparison(String left, String right, Operator op) {
 		this.left = new NamedDataSource(left);
 		this.right = new NamedDataSource(right);
 		operator = op;
+		variables = new HashSet<>();
+		variables.add(left);
+		variables.add(right);
 	}
 	
 	@Override
@@ -90,6 +96,11 @@ public class Comparison implements Formula {
 		Relation rel = cmp.get(significanceLevel);
 		
 		return relationToResult(operator, rel);
+	}
+
+	@Override
+	public Set<String> getVariables() {
+		return variables;
 	}
 
 	public static Result relationToResult(Operator op, Relation rel) {

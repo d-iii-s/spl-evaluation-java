@@ -25,13 +25,13 @@ import cz.cuni.mff.d3s.spl.BenchmarkRun;
  *
  */
 public class BenchmarkRunBuilder {
-	private final List<Long> samples = new LinkedList<>();
+	private final List<Double> samples = new LinkedList<>();
 	
 	public BenchmarkRunBuilder() {
 	}
 
 	public BenchmarkRun create() {
-		return create (0);
+		return create(0);
 	}
 
 	public BenchmarkRun create(int skip) {
@@ -39,13 +39,20 @@ public class BenchmarkRunBuilder {
 	}
 
 	public BenchmarkRun create(double skip) {
-		return new ImmutableBenchmarkRun(samples, (int) (samples.size () * skip));
+		return new ImmutableBenchmarkRun(samples, (int) (samples.size() * skip));
 	}
 	
 	public synchronized BenchmarkRunBuilder addSamples(long... values) {
 		for (long v : values) {
+			samples.add((double)v);
+		}
+		return this;
+	}
+
+	public synchronized BenchmarkRunBuilder addSamples(double... values) {
+		for (double v : values) {
 			samples.add(v);
 		}
 		return this;
-	}	
+	}
 }

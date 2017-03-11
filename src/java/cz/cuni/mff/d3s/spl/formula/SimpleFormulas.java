@@ -16,7 +16,9 @@
  */
 package cz.cuni.mff.d3s.spl.formula;
 
+import java.util.HashSet;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 import cz.cuni.mff.d3s.spl.ComparisonResult;
 import cz.cuni.mff.d3s.spl.DataSource;
@@ -73,6 +75,14 @@ public class SimpleFormulas {
 			ComparisonResult result = apparatus.compare(leftData.makeSnapshot(), rightData.makeSnapshot());
 			return Comparison.relationToResult(Operator.LT, result.get(significanceLevel));
 		}
+
+		@Override
+		public Set<String> getVariables() {
+			Set<String> variables = new HashSet<>();
+			variables.add(leftName);
+			variables.add(rightName);
+			return variables;
+		}
 	}
 	
 	private static class SmallerThanConstant implements Formula {
@@ -106,6 +116,13 @@ public class SimpleFormulas {
 		public Result evaluate(double significanceLevel) {
 			ComparisonResult result = interpretation.compare(data.makeSnapshot(), constant);
 			return Comparison.relationToResult(Operator.LT, result.get(significanceLevel));
+		}
+
+		@Override
+		public Set<String> getVariables() {
+			Set<String> variables = new HashSet<>();
+			variables.add(sourceName);
+			return variables;
 		}
 	}
 }

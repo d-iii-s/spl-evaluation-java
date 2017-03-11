@@ -14,27 +14,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package cz.cuni.mff.d3s.spl.utils;
+package cz.cuni.mff.d3s.spl.data;
 
-import static org.junit.Assert.*;
+import cz.cuni.mff.d3s.spl.DataSnapshot;
+import cz.cuni.mff.d3s.spl.DataSource;
 
-import org.junit.Test;
+/** Utility class to read data from streams.
+ *
+ */
+public class BuilderDataSource implements DataSource {
+	private DataSnapshotBuilder builder;
 
-public class PrimitiveIterablesTest {
-	private static void assertIterable(double... values) {
-		int index = 0;
-		for (Double value : PrimitiveIterables.makeIterable(values)) {
-			assertTrue("Iterable has more elements", index < values.length);
-			assertEquals(values[index], value.longValue(), 0.0001);
-			index++;
-		}
-		assertTrue("Iterable does not have all elements", index == values.length);
+	public BuilderDataSource(DataSnapshotBuilder builder) {
+		this.builder = builder;
 	}
-	
-	@Test
-	public void smokeTest() {
-		assertIterable(0);
-		assertIterable(0, 1, 2);
-		assertIterable(0, 1, 2, 3);
+
+	@Override
+	public DataSnapshot makeSnapshot() {
+		return builder.create();
+	}
+
+	@Override
+	public DataSnapshot makeSnapshot(int skip) {
+		return builder.create(skip);
+	}
+
+	@Override
+	public DataSnapshot makeSnapshot(double skip) {
+		return builder.create(skip);
 	}
 }

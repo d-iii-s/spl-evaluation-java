@@ -97,7 +97,7 @@ public class BenchmarkRunUtils  {
 		synchronized (runs) {
 			for (BenchmarkRun r : runs) {
 				synchronized (r) {
-					for (long l : r.getSamples()) {
+					for (double l : r.getSamples()) {
 						builder.addSamples(l);
 					}
 				}

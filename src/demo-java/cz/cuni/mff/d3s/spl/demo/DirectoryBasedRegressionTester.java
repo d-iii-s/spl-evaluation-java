@@ -19,11 +19,14 @@ package cz.cuni.mff.d3s.spl.demo;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import cz.cuni.mff.d3s.spl.DataReader;
+import cz.cuni.mff.d3s.spl.data.readers.RevisionReader;
 import cz.cuni.mff.d3s.spl.DataSource;
 import cz.cuni.mff.d3s.spl.Formula;
 import cz.cuni.mff.d3s.spl.Result;
-import cz.cuni.mff.d3s.spl.data.FileDataSource;
+import cz.cuni.mff.d3s.spl.data.readers.LineOrientedRevisionReader;
 import cz.cuni.mff.d3s.spl.formula.SplFormula;
 import cz.cuni.mff.d3s.spl.interpretation.WelchTestInterpretation;
 
@@ -59,12 +62,19 @@ public class DirectoryBasedRegressionTester {
 			File dir = new File(dirname);
 			
 			System.out.printf("Reading data from %s...", dirname);
+
+			RevisionReader reader = new LineOrientedRevisionReader();
+			Map<String, DataSource> data = null;
+			try {
+				data = reader.readRevision(dir.listFiles());
+			} catch (DataReader.ReaderException e) {
+				e.printStackTrace();
+				System.exit(2);
+			}
+
+			System.out.printf(" ok, %d run(s).\n", data.get("default").makeSnapshot().getRunCount());
 			
-			DataSource data = FileDataSource.load(dir.listFiles());
-			
-			System.out.printf(" ok, %d run(s).\n", data.makeSnapshot().getRunCount());
-			
-			datas.add(new Revision(dir.getName(), data));
+			datas.add(new Revision(dir.getName(), data.get("default")));
 		}
 		
 		Formula improved = SplFormula.create("new < old");

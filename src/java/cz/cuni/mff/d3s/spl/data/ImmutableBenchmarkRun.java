@@ -27,37 +27,42 @@ import cz.cuni.mff.d3s.spl.utils.PrimitiveIterables;
  *
  */
 public class ImmutableBenchmarkRun implements BenchmarkRun {
-	private final long[] data;
+	private final double[] data;
 
-	public ImmutableBenchmarkRun(long... samples) {
+	public ImmutableBenchmarkRun(double... samples) {
 		data = Arrays.copyOf(samples, samples.length);
 	}
 
-	public ImmutableBenchmarkRun(Collection<Long> samples) {
+	public ImmutableBenchmarkRun(Collection<Double> samples) {
 		this(samples, 0);
 	}
 	
-	public ImmutableBenchmarkRun(Collection<Long> samples, int skip) {
+	public ImmutableBenchmarkRun(Collection<Double> samples, int skip) {
 		int size = samples.size() - skip;
 		int idx = 0 - skip;
-		data = new long[size];
-		for (Long val : samples) {
+		data = new double[size];
+		for (double val : samples) {
 			if (idx >= 0) data[idx] = val;
 			idx++;
 		}
 	}
 	
-	public ImmutableBenchmarkRun(BenchmarkRun run) {
+	public ImmutableBenchmarkRun(BenchmarkRun run, int skip) {
 		synchronized (run) {
-			data = new long[run.getSampleCount()];
+			int itemsCount = run.getSampleCount() - skip;
+			data = new double[itemsCount];
 			for (int i = 0; i < data.length; i++) {
-				data[i] = run.getSample(i);
+				data[i] = run.getSample(i + skip);
 			}
 		}
 	}
 
+	public ImmutableBenchmarkRun(BenchmarkRun run) {
+		this(run, 0);
+	}
+
 	@Override
-	public Iterable<Long> getSamples() {
+	public Iterable<Double> getSamples() {
 		return PrimitiveIterables.makeIterable(data);
 	}
 
@@ -67,7 +72,7 @@ public class ImmutableBenchmarkRun implements BenchmarkRun {
 	}
 
 	@Override
-	public long getSample(int index) {
+	public double getSample(int index) {
 		return data[index];
 	}
 }

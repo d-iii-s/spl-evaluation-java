@@ -35,7 +35,25 @@ public class DataSnapshotBuilder {
 	}
 	
 	public synchronized DataSnapshot create() {
-		return new Snapshot(runs, prevEpoch);
+		return create(runs, prevEpoch);
+	}
+
+	public synchronized DataSnapshot create(int skip) {
+		// skip 'skip' elements from the beginning
+		List<BenchmarkRun> skippedRuns = new LinkedList<>();
+		for (BenchmarkRun run : runs) {
+			skippedRuns.add(new ImmutableBenchmarkRun(run, skip));
+		}
+		return create(skippedRuns, prevEpoch);
+	}
+
+	public synchronized DataSnapshot create(double skip) {
+		// skip 'skip' percent of elements from the beginning
+		List<BenchmarkRun> skippedRuns = new LinkedList<>();
+		for (BenchmarkRun run : runs) {
+			skippedRuns.add(new ImmutableBenchmarkRun(run, (int) (run.getSampleCount() * skip)));
+		}
+		return create(skippedRuns, prevEpoch);
 	}
 	
 	public synchronized DataSnapshotBuilder setPreviousEpoch(DataSnapshot snapshot) {
@@ -47,6 +65,10 @@ public class DataSnapshotBuilder {
 		runs.add(new ImmutableBenchmarkRun(run));
 		return this;
 	}
+
+	private DataSnapshot create(List<BenchmarkRun> runs, DataSnapshot prevEpoch) {
+		return new Snapshot(runs, prevEpoch);
+	}
 	
 	private static class Snapshot implements DataSnapshot {
 		private List<BenchmarkRun> runs;
@@ -55,9 +77,7 @@ public class DataSnapshotBuilder {
 		public Snapshot(List<BenchmarkRun> data, DataSnapshot prev) {
 			synchronized (data) {
 				runs = new ArrayList<>(data.size());
-				for (BenchmarkRun run : data) {
-					runs.add(run);
-				}
+				runs.addAll(data);
 			}
 			prevEpoch = prev;
 		}

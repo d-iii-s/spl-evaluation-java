@@ -33,14 +33,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import cz.cuni.mff.d3s.spl.BenchmarkRun;
-import cz.cuni.mff.d3s.spl.ComparisonResult;
-import cz.cuni.mff.d3s.spl.DataSnapshot;
-import cz.cuni.mff.d3s.spl.DataSource;
-import cz.cuni.mff.d3s.spl.Interpretation;
+import cz.cuni.mff.d3s.spl.*;
 import cz.cuni.mff.d3s.spl.data.BenchmarkRunBuilder;
 import cz.cuni.mff.d3s.spl.data.DataSnapshotBuilder;
-import cz.cuni.mff.d3s.spl.data.FileDataSource;
+import cz.cuni.mff.d3s.spl.data.readers.LineOrientedRevisionReader;
+import cz.cuni.mff.d3s.spl.data.readers.RevisionReader;
 import cz.cuni.mff.d3s.spl.interpretation.DistributionLearningInterpretationParallel;
 import cz.cuni.mff.d3s.spl.interpretation.WelchTestInterpretation;
 import cz.cuni.mff.d3s.spl.interpretation.WelchTestWithEnlargedVariancesInterpretation;
@@ -190,8 +187,8 @@ public class SensitivityComparison {
 			for (BenchmarkRun run : data.getRuns()) {
 				BenchmarkRunBuilder builder = new BenchmarkRunBuilder();
 				
-				for (long sample : run.getSamples()) {
-					builder.addSamples(Math.round((double)sample * coef));
+				for (double sample : run.getSamples()) {
+					builder.addSamples(Math.round(sample * coef));
 				}
 				
 				snapshotBuilder.addRun(builder.create());
@@ -519,8 +516,8 @@ public class SensitivityComparison {
 			
 			Collection<File> leftFiles = new ArrayList<>();
 			Collection<File> rightFiles = new ArrayList<>();
-			DataSource leftSource = null;
-			DataSource rightSource = null;
+			Map<String, DataSource> leftSource = null;
+			Map<String, DataSource> rightSource = null;
 			ComparisonOperator cmpOp = null;
 			int cmpOpCount = 0;
 
@@ -544,11 +541,16 @@ public class SensitivityComparison {
 			    continue;
 			}
 
-			leftSource = FileDataSource.load(skip, leftFiles);
-			rightSource = FileDataSource.load(skip, rightFiles);
-			
-			DataSnapshot left = leftSource.makeSnapshot();
-			DataSnapshot right = rightSource.makeSnapshot();
+			RevisionReader reader = new LineOrientedRevisionReader();
+			try {
+				leftSource = reader.readRevision(leftFiles.toArray(new File[leftFiles.size()]));
+				rightSource = reader.readRevision(rightFiles.toArray(new File[rightFiles.size()]));
+			} catch (DataReader.ReaderException e) {
+				e.printStackTrace();
+			}
+
+			DataSnapshot left = leftSource.get("default").makeSnapshot(skip);
+			DataSnapshot right = rightSource.get("default").makeSnapshot(skip);
 			
 			if ((left.getRunCount() == 0) || (right.getRunCount() == 0)) {
 				System.err.printf("There are no sources on %s.\n", line);
